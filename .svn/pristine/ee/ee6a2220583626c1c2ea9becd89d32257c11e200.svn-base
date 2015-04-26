@@ -1,0 +1,21 @@
+
+function setUDO(){
+	alert("you clicked edit udo");
+	
+	//Push the fields that the user enteres in the forms as a tuple of the form
+	//(field name, field type)
+	// for all the fields entered
+	//LIST__OF_PARAMETERS.push()
+
+	
+	
+
+	// get name that user entered from form
+	var udoName = document.getElementById("udo_form_name");
+	
+	//assign name that user entered in form
+	NAME_OF_OBJECT;
+
+	//list name that user entered from form
+	var udoNameDisplay = document.getElementById("udo_name").innerHTML = NAME_OF_OBJECT;
+}

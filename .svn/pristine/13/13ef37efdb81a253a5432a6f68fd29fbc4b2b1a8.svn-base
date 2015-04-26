@@ -1,0 +1,13 @@
+/* pop-up settings for entities */
+.settings_form {
+    background-color: white;
+    border: 1px solid black;
+    width: 400px;
+    position: relative;
+    left: 10px;
+
+}
+
+.settings_form_close {
+	background-color: black;
+}

@@ -1,0 +1,114 @@
+
+function SourceModel(a) {
+    this.view = a;
+    this.params = [.25];
+	this.distribution = "exponential"
+    this.dest = null;
+	this.spawn = null
+    this.view.image.attr({
+        title: "Parameters = " + this.params + " Distribution = " + this.distribution
+    })
+}
+
+SourceModel.prototype.jsonify = function() {
+    return {
+        params: this.params,
+		distribution: this.distribution
+    }
+};
+
+SourceModel.prototype.start = function() {
+    this.entity = QueueApp.sim.addEntity(SourceEntity, this.params)
+};
+
+SourceModel.prototype.connect = function() {
+    this.entity.dest = this.dest ? this.dest.entity : null
+};
+
+SourceModel.prototype.showSettings = function() {
+    var a = $("#source_form");
+    QueueApp.form_view = this.view;
+    a.find("#source_form_distribution").val(this.distribution);
+	if(this.params.length == 2){
+		a.find("#source_form_param1").val(this.params[0])
+		a.find("#source_form_param2").val(this.params[1])
+	}
+	else if(this.params.length == 1){
+		a.find("#source_form_param1").val(this.params[0])
+	}
+	a.find("#source_form_spawn").val(this.spawn)
+    a.show().position({
+        of: $(this.view.image.node),
+        at: "center center",
+        my: "left top"
+    })
+};
+
+SourceModel.prototype.saveSettings = function() {
+    a = $("#source_form")
+	this.distribution = a.find("#source_form_distribution").val();
+	this.params = [];
+	this.params.push(a.find("#source_form_param1").val());
+	this.params.push(a.find("#source_form_param2").val());
+	switch(this.distribution){
+		case "exponential":
+			this.params = [this.params[0]]
+			break
+		case "random":
+			this.params = []
+			break
+		case "gaussian":
+			break
+	}
+	this.spawn = a.find("#source_form_spawn").val()
+    this.view.image.attr({
+        title: "Parameters = " + this.params + " Distribution = " + this.distribution
+    })
+};
+
+SourceModel.prototype.unlink = function() {
+    this.view = null
+};
+
+SourceModel.prototype.showStats = function() {
+    this.view.showCounters(NaN, this.entity.generated)
+
+    //call animation manager funtion
+   // var value = a.toFixed(1);
+    stat_animation_manager(this.view.image.node.id, "source", 100);
+};
+
+var SourceEntity = {
+    start: function(a) {
+        this.params = a;
+        this.setTimer(0).done(this.traffic);
+        this.generated = 0
+    },
+    traffic: function() {
+		if(!this.dest){
+			return;
+		}
+        this.dest.arrive(this.time())
+		this.generated++
+		switch(this.distribution){
+			case "gaussian":
+				this.setTimer(QueueApp.random.normal(this.param[0], this.param[1])).done(this.traffic)
+				break
+			case "gamma":
+				this.setTimer(QueueApp.random.gamma(this.param[0], this.param[1])).done(this.traffic)
+				break
+			case "exponential":
+				this.setTimer(QueueApp.random.exponential(this.params[0])).done(this.traffic)
+				break
+			case "weibull":
+				this.setTimer(QueueApp.random.weibull(this.param[0], this.param[1])).done(this.traffic)
+				break
+			case "pareto":
+				this.setTimer(QueueApp.random.pareto(this.param[0])).done(this.traffic)
+				break
+			default:
+				this.setTimer(QueueApp.random.random()).done(this.traffic)
+				break
+		}
+    }
+};

@@ -1,0 +1,479 @@
+<html itemscope="" itemtype="http://schema.org/Product"><head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    
+    <meta itemprop="name" content="BlueSim :: Simulation Builder">
+    <!--
+    <meta itemprop="description" content="M/M/1 Queuing Simulator">
+    <meta property="og:title" content="M/M/1 Queuing Simulator">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="http://www.simjs.com/queuing">
+    <meta property="og:site_name" content="BlueSim">
+    -->
+    <title>bluesim</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+    <style type="text/css"></style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="lib/d3v3.js" type="text/javascript" charset="utf-8"></script>
+    <script src="lib/raphael-min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="sim-0.26.js" type="text/javascript" charset="utf-8"></script>
+    <script src="global.js" type="text/javascript" charset="utf-8"></script>
+    <script src="queuing-min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="image-view.js" type="text/javascript" charset="utf-8"></script>
+    <script src="stat-animation-manager.js" type="text/javascript" charset="utf-8"></script>
+    <script src="entities/data.js" type="text/javascript" charset="utf-8"></script>
+    <script src="entities/splitter.js" type="text/javascript" charset="utf-8"></script>
+    <script src="entities/sink.js" type="text/javascript" charset="utf-8"></script>
+    <script src="entities/source.js" type="text/javascript" charset="utf-8"></script>
+    <script src="entities/server.js" type="text/javascript" charset="utf-8"></script>
+    <script src="entities/switch.js" type="text/javascript" charset="utf-8"></script>
+    <script src="entities/stack.js" type="text/javascript" charset="utf-8"></script>
+
+    <script src="udo-manager.js" type="text/javascript" charset="utf-8"></script>
+    <script src="entities/splitfunction.js" type="text/javascript" charset="utf-8"></script>
+    <script src="gm.js" type="text/javascript" charset="utf-8"></script>
+    
+    <!-- added new stylesheet -->
+    <link rel="stylesheet" href="css/toolbar.css" type="text/css" media="screen" title="no title" charset="utf-8">
+    <link rel="stylesheet" href="css/canvas_parent.css" type="text/css" media="screen" title="no title" charset="utf-8">
+
+    <link rel="stylesheet" href="css/queuing.css" type="text/css" media="screen" title="no title" charset="utf-8">
+    <link rel="stylesheet" href="css/jquery-ui-1.8.16.custom.css" type="text/css" media="screen" title="no title" charset="utf-8">
+    
+    <script type="text/javascript" charset="utf-8">
+
+        $(function () {
+            (function() {
+                var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+                po.src = 'https://apis.google.com/js/plusone.js';
+                var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+                })();
+            
+            $('#accordion').accordion({autoHeight: false});
+            $('#about_this_model').accordion({collapsible: true, autoHeight: false}).hide();
+            
+            
+            $('#sample_models a').click(function (event) {
+                var id = $(this).attr('id');
+                var name = $(this).text();
+                var model = MODELS[id];
+                if (!model) return;
+
+                QueueApp.reset(true);
+                QueueApp.loadtext(model.model);
+                
+                $('#about_this_model a').text('About this model [' + name + ']');
+                var a = $('#about_this_model');
+                a.show();
+                if (a.accordion('option', 'active') !== 0) {
+                    a.accordion('option', 'active', 0);
+                }
+
+                $('.about_text').hide();
+                $('#about_' + id).show();
+                return false;
+            });
+            
+            QueueApp.init();
+
+    });
+        
+    </script>
+
+</head>
+
+<body data-twttr-rendered="true">
+    
+<!--     <div id="banner">
+        <h1>Simulation Builder</h1>
+        <p id="subtitle">Powered by <a href="http://www.simjs.com">Sim.JS</a> -- A Discrete Event Simulation library in JavaScript</p>
+    </div> -->
+
+    
+
+    <div class="panel panel-default" id = "outer-div">
+        <div class="panel-heading" id="bigheader"> 
+            <!-- <img src="images/logo.png"> -->
+            <img src="images/BLUESIM_FINAL.png" style="height:5%">
+        </div>
+        <div class="panel-body">
+
+        <div id="progressbar" class="ui-progressbar ui-widget ui-widget-content ui-corner-all" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="display: none;"><div class="ui-progressbar-value ui-widget-header ui-corner-left" style="display: none; width: 0%;"></div></div>
+    
+            <div id="main_layout">
+                <div id="toolbar_div">
+                    <span id="toolbar">  <!-- class="ui-widget-header ui-corner-all"> -->
+                        <span id="file_ops" class="ui-buttonset" >
+                            <button id="new_file" class="ui-button ui-widget ui-state-default ui-button-icon-only ui-corner-left" role="button" aria-disabled="false" title="New Canvas"><span class="ui-button-icon-primary ui-icon ui-icon-document"></span><span class="ui-button-text">New Canvas</span></button>
+                            <button id="load_file" class="ui-button ui-widget ui-state-default ui-button-icon-only" role="button" aria-disabled="false" title="Load a file"><span class="ui-button-icon-primary ui-icon ui-icon-folder-open"></span><span class="ui-button-text">Load a file</span></button>
+                            <button id="save_file" class="ui-button ui-widget ui-state-default ui-button-icon-only ui-corner-right" role="button" aria-disabled="false" title="Save to file"><span class="ui-button-icon-primary ui-icon ui-icon-disk"></span><span class="ui-button-text">Save to file</span></button>
+                        </span>
+
+                        <span id="sim_play_ops" class="ui-buttonset" style="display: none;">
+                            <button id="pause_sim" class="ui-button ui-widget ui-state-default ui-button-icon-only ui-corner-left" role="button" aria-disabled="false" title="Pause"><span class="ui-button-icon-primary ui-icon ui-icon-pause"></span><span class="ui-button-text">Pause</span></button>
+                            <button id="stop_sim" class="ui-button ui-widget ui-state-default ui-button-icon-only ui-corner-right" role="button" aria-disabled="false" title="Stop"><span class="ui-button-icon-primary ui-icon ui-icon-stop"></span><span class="ui-button-text">Stop</span></button>
+                        </span>
+                        <span id="sim_ops" class="ui-buttonset">
+                            <button id="play_sim" class="ui-button ui-widget ui-state-deefaul ui-button-text-icon-primary ui-corner-left" role="button" aria-disabled="false"><span class="ui-button-icon-primary ui-icon ui-icon-play"></span><span class="ui-button-text">Simulate</span></button>
+
+                            <button id="config_sim" class="ui-button ui-widget ui-state-deefaul ui-button-text-icon-primary ui-corner-right" role="button" aria-disabled="false"><span class="ui-button-icon-primary ui-icon ui-icon-clock"></span><span id="config_label" class="ui-button-text">8:00 hours</span></button>
+
+                        </span>
+                    </span>
+                </div> <!-- id="toolbar_div" -->
+            </div>
+    </div>
+
+            <div id="canvas_parent">
+                <span><div id="canvas"></div>
+                <div id="udo_toolbar">
+                    <img id="udo_image" src="images/UDO.png" onmousedown="setUDO()">
+                    <div id="udo_name"><h4>NAME<h4></div>
+                </div></span>
+            </div>
+
+            <!-- 'About this model' -->
+            <div id="about_this_model" class="ui-accordion ui-widget ui-helper-reset ui-accordion-icons" role="tablist" style="display: none;">
+                <h3 class="ui-accordion-header ui-helper-reset ui-state-default ui-state-active ui-corner-top" role="tab" aria-expanded="true" aria-selected="true" tabindex="0"><span class="ui-icon ui-icon-triangle-1-s"></span><a href="#">About this model</a></h3>
+                <div class="ui-accordion-content ui-helper-reset ui-widget-content ui-corner-bottom ui-accordion-content-active" role="tabpanel">
+                    <div id="about_model_mm1" class="about_text">
+                        The very basic queuing system with one Server (exponential service time with rate λ and infinite queue) and one Source (Poisson traffic with rate μ). 
+                        <p>This model is simple enough to analytically determine the steady state properties of the system (in the following, ρ = λ / μ):</p>
+                        <ul>
+                            <li>Server utilization -- fraction of time server was busy = λ / μ</li>
+                            <li>Average time spent by customers waiting in queue = ρ / (μ - λ)</li>
+                            <li>Average time spent by customers in obtaining service (time spent waiting in queue + time spent get service from server) = 1 / (μ - λ)</li>
+                            <li>Average length of queue = ρ * ρ / (1 - ρ)</li>
+                            <li>Average number of customer inside the system (being serviced or waiting in queue) = ρ / (1 - ρ) </li>
+                        </ul>
+                    <p>Try out different values of λ and μ and see what happens!</p>
+                    
+                    <p><strong>Exercises:</strong> Think what should happen before you try these. What will happen when arrival rate is same as service rate (that is, λ = μ)? When arrival rate is higher? Keep the service rate constant and change arrival rate such that average queue length is about 5. Try again for queue length 50. What can we infer?</p>
+                    </div>
+
+                    <div id="about_model_mm1feedback" class="about_text">
+                        <p><strong>Life at DMV:</strong> Alice is a fastidious clerk whose responsibility is to review the forms and approve them. She takes exponential time to review the forms, AND she ends up rejecting a fraction of application (because they were not complete). The rejected customers immediately fix their application and join the queue again <em>at the end</em>. We would like to know what is the average time taken for customers to get their applications approved, and how many customers are within the system.</p>
+                        
+                        <p><strong>Modeling:</strong> Alice is modeled as a M/M/1 service. The output from the service is fed into a <em>splitter</em> that loops back a fraction of traffic back to queue and the remaining exit the system. The <em>sink</em> measures: (a) Population -- the number of customers within the system, and (b) Stay duration -- average time that customers (who exited) spent within the system.</p>
+                        
+                        <p><strong>Exercises:</strong> What happens when Alice rejects 0%, 10%, 50%, 90% of applications? Which is better for customers: Alice who rejects 10% applications, or Bob who works twice as fast as Alice but rejects twice as many applications? </p>
+                    </div>
+
+                    <div id="about_model_backforth" class="about_text">
+                        <p><strong>The joys of government office:</strong> Alice was a good employee (see 'Feedback'), Chuck and Dave are not. They work in one government office and are responsible for approving loan applications. Customers line up for Chuck's desk first, but Chuck approves only some of them. The remaining he sends over to Dave. Dave also approves only some of the customers, and send the remaining back to Chuck. We would like to know what is the average time taken for customers to get their applications approved, and how many customers are within the system.</p>
+                        
+                        <p><strong>Modeling:</strong> Both Chuck and Dave are represented as M/M/1 services. The output of both services is fed into a '<em>splitter</em>', which loops back a fraction of traffic to the other service, while the remaining exit the system. The '<em>sink</em>' records the statistics we are interested in.</p>
+                    
+                        <p><strong>Exercises:</strong> What should be the difference between: when Chuck rejects 30% and Dave rejects 70% applications, versus Chuck rejecting 70% and Dave 30%? See if you can intuitively predict before running the simulation. </p>
+                    </div>
+
+                    <div id="about_model_waterfall" class="about_text">
+                        <p>Real life example? We don't know.. it just looks pretty! Seriously though, this is a "network of queues" where output of one M/M/1 service feeds the next service. This is an important problem in <strong>assembly line productions</strong> where we would like to study the impact on one slow service on the overall throughput of the system.</p>
+                        
+                        <p>In the above scenario, all services have identical rates. Try to vary them and see what happens.</p>
+                
+                        <p><strong>Exercises:</strong></p> 
+                        <ul>
+                            <li>The location of slow server? Say there are three servers with identical rates, and one with a slower rate. Where would you put this server -- first? last? See if you can intuitively predict, before you simulate all four combinations.</li>
+                            <li>Say the four servers have rate 1, 2, 3 and 4. How would you arrange them -- ascending? descending? See if you can intuitively predict, before you run the simulations.</li>
+                        </ul>
+                    </div>
+
+                    <div id="about_model_compile" class="about_text">
+                        <p><strong>Life of [un]happy programmer:</strong> Programmers write code; something fails (aka bugs) and they have to fix it again. The good code is sent to testers who reject problematic code and send it back to programmers. The programmers work on code from three sources: original code coming from their managers, code that was rejected in the coding stage, and the code that was rejected in the testing stage. We would like to know what is the rate at which code is shipped by our software firm?</p>
+                        
+                        <p><strong>Modeling:</strong> Both the programming and testing stages are represented by M/M/1 queues ('queue_1' and 'queue_2', resp). Output from programming service is fed to splitter, which sends a fraction (the good code) to testers, and loops back the remaining back to programmers. The testers, similarly, send a fraction of traffic (the good code) for shipping (the sink) and remaining back to the programmers. The '<em>sink</em>' records the statistics we are interested in.</p>
+                        
+                        <p><strong>Exercises:</strong> Do you agree with "its better to find problems sooner than later"? Try out these two cases: 10% code rejected after queue_1 and 30% after queue_2, and vice versa. </p>
+                    </div>
+
+                    <div id="about_model_staytillend" class="about_text">
+                        <p><strong>Only the best for our customers:</strong> Acme corporation sells paper cups. Before shipping, Acme runs each paper cup through a four-stage Quality Assurance pipeline to make sure there are no leaks, the cups have correct size, color and strength. In each stage, only the accepted cups are passed on to the next stage of testing. The testing takes exponential time and the arrivals from the factory is Poisson. We would like to know how much time is spent in QA, and if we can speed it up.</p>
+                    
+                        <p><strong>Modeling:</strong> Each of the four stages is represented as M/M/1 servers. All servers are connected to '<em>spiltters</em>' which reject a fraction of output, and send the remaining to the next server or shipping. The sinks tell us what how much time was cumulatively spent after each testing stage.</p>
+                        
+                        <p><strong>Exercises:</strong></p> 
+                        <ul>
+                            <li>Suppose the four stages have defect rate of 10%, 20%, 30% and 40%. How would you organize these stages: ascending defect rates or descending defect rates? Why?</li>
+                            <li>Suppose there is a stage that takes much longer time than other stages but results in much less defects? Where would you place this stage -- first or last? How about when it produced highest defect rates also? Did the simulation results matched your intuitions?</li>
+                        </ul>
+                    </div>
+                    
+                    <div id="about_model_freeway" class="about_text">
+                        <p><strong>On a busy highway:</strong> Life is usual at the freeway: cars enter and cars leave. The freeway has four segments, each modeled as M/M/1 queue (why? because we can!). At each segments, some cars arrive and some leave. We would like to know steady state probabilities of overall throughput and the time that cars spend in the freeway.</p>
+                        
+                        <p><strong>Exercises:</strong> Reason intuitively first on what should happen before you try these cases: (a) one segment has very high input and output rate, (b) one segment is the "bottleneck" (has very high service rate), (c) freeway exit rate is same, lower or higher than entrance rates.</p>
+                    </div>
+
+
+                    <div id="about_model_winner" class="about_text">
+                        <p><strong>And the trophy goes to __:</strong> We have a competition is progress and we are looking at the semi-finals and the final stages. Competitors arrive in the semi-finals stages, some lose and fall out from competition. The winners proceed to final stage where they come out as winners or runner-ups. This 'pyramidical' model is different from most of the others, which were 'linear'. We would like to know how much time is spent by contestants in this competition.</p>
+                        
+                        <p><strong>Exercises:</strong> What will be impact on overall statistics if one semi-final stage takes a long time and has higher rejection rate? What about the other three combinations of service rate and rejection rate?</p>
+                    </div>
+                </div>
+            </div> <!-- id="about_this_model" -->
+
+            <div id="results">
+
+            </div>
+
+        </div> <!-- id="content" -->
+
+        <!--<div id="info">
+            <p><strong>About Queuing Network Simulator</strong></p>
+            
+            <p>We bring the power of Discrete Event Simulation and Web technologies for teaching and learning Queuing Theory and Queuing Networks. </p>
+            
+            <p>Complex networks of M/M/1 queues can be modeled and simulated easily with this web-based simulator. The simulator runs a complete discrete event simulation to generate the statistics of queues and systems.</p> 
+                
+            <p style="color:#1c94c4">Try out the example models and exercises, or experiment with your own concoctions!</p>
+
+            <p>*Coming soon: closed loops queue, multi-server queues and much more.</p>
+        </div> --> <!-- id="info" -->
+
+    </div> <!-- id="main_layout" -->
+
+    <!-- Dialogs. These are all hidden -->
+
+    <div id="server_stats" class="stats">
+        <h2>Server 1</h2>
+        <table class="stats_table" border="1">
+            <tbody><tr><th>Metric</th> <th>Mean</th><th>Std Dev</th></tr>
+            <tr><td>Arrivals</td><td id="arrival">-</td><td>-</td></tr>
+            <tr><td>Dropped</td><td id="drop">-</td><td>-</td></tr>
+            <tr><td>Server Utilization</td><td id="sutil">-</td><td>-</td></tr>
+            <tr><td>Time spent in queue</td><td id="qtime">-</td><td id="qtimed">-</td></tr>
+            <tr><td>Time spent in system</td><td id="stime">-</td><td id="stimed">-</td></tr>
+            <tr><td>Length of queue</td><td id="qsize">-</td><td id="qsized">-</td></tr>
+            <tr><td>Customers in system</td><td id="ssize">-</td><td id="ssized">-</td></tr>
+        </tbody></table>
+    </div>
+
+    <div id="sink_stats" class="stats">
+        <h2>Sink</h2>
+        <table class="stats_table" border="1">
+            <tbody><tr><th>Metric</th> <th>Mean</th><th>Std Dev</th></tr>
+            <tr><td>Departures</td><td id="depart">-</td><td>-</td></tr>
+            <tr><td>Population</td><td id="pop">-</td><td id="popd">-</td></tr>
+            <tr><td>Stay duration</td><td id="stay">-</td><td id="stayd">-</td></tr>
+        </tbody></table>
+    </div>
+
+
+
+    
+    
+    
+
+    <div id="simulation_dialog" title="Simulation Properties" class="settings_form" style="display: none;">
+        <button id="simulation_dialog_close" class="settings_form_close ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only" role="button" aria-disabled="false" title=""><span class="ui-button-icon-primary ui-icon ui-icon-close"></span><span class="ui-button-text"></span></button>
+        <table>
+            <tbody><tr><td><label for="sim_until">Simulation duration</label>
+                <select id="time_selector">
+                    <option>hours</option>
+                    <option>mins</option>
+                    <option>secs</option>
+                </select>
+            </td>
+            <td><input type="text" name="sim_until" value="5000" id="sim_until"></td></tr>
+            <tr><td><label for="sim_seed">Random generation seed</label>
+
+            </td>
+            <td><input type="text" name="sim_seed" value="1234" id="sim_seed"></td></tr>
+        </tbody></table>
+        <hr>
+        <button id="simulation_dialog_save" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Apply</span></button>
+    </div>
+
+    <div id="server_form" class="settings_form" style="display: none;">
+        <button id="server_form_close" class="settings_form_close ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only" role="button" aria-disabled="false" title=""><span class="ui-button-icon-primary ui-icon ui-icon-close"></span><span class="ui-button-text"></span></button></br>
+        <table>
+            <tr>
+                <td><label for="server_form_rate">Average service rate [mu] (customers per second)</label></td>
+                <td><input type="text" name="server_form_rate" id="server_form_rate" value="" class="text ui-widget-content ui-corner-all"></td></tr>
+            <tr>
+                <td><label for="queue_length">Max Queue Length<br>(-1 for infinite queue)</label></td>
+                <td><input type="text" name="queue_length" value="-1" id="queue_length" class="text ui-widget-content ui-corner-all"></td></tr>
+
+            <tr>
+                <td><label for="num_servers">Number of Servers<br></label></td>
+                <td><input type="text" name="num_servers" value="1" id="num_servers" class="text ui-widget-content ui-corner-all"></td></tr>
+                
+        </table>
+        <hr>
+        <button id="server_form_delete" class="settings_form_delete ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" role="button" aria-disabled="false"><span class="ui-button-icon-primary ui-icon ui-icon-trash"></span><span class="ui-button-text">Delete</span></button>
+        <button id="server_form_disconnect" class="settings_form_disconnect ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Disconnect</span></button>
+        <button id="server_form_save" class="settings_form_save ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Apply</span></button>
+    </div>
+
+    <div id="source_form" title="Source Properties" class="settings_form" style="display: none;">
+        <button id="source_form_close" class="settings_form_close ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only" role="button" aria-disabled="false" title=""><span class="ui-button-icon-primary ui-icon ui-icon-close"></span><span class="ui-button-text"></span><b></b></button></br>
+        
+        <div id="source_form_to_append">
+              
+        </div>`
+        <hr>
+        <button id="source_form_delete" class="settings_form_delete ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" role="button" aria-disabled="false"><span class="ui-button-icon-primary ui-icon ui-icon-trash"></span><span class="ui-button-text">Delete</span></button>
+        <button id="source_form_disconnect" class="settings_form_disconnect ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Disconnect</span></button>
+        <button id="source_form_save" class="settings_form_save ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Apply</span></button>
+    </div>
+
+    <div id="sink_form" class="settings_form" style="display: none;">
+        <button id="sink_form_close" class="settings_form_close ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only" role="button" aria-disabled="false" title=""><span class="ui-button-icon-primary ui-icon ui-icon-close"></span><span class="ui-button-text"></span></button></br>
+        <hr>
+        <button id="sink_form_delete" class="settings_form_delete ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" role="button" aria-disabled="false"><span class="ui-button-icon-primary ui-icon ui-icon-trash"></span><span class="ui-button-text">Delete</span></button>
+    </div>
+
+    <div id="splitter_form" title="Splitter Properties" class="settings_form" style="display: none;">
+        <button id="splitter_form_close" class="settings_form_close ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only" role="button" aria-disabled="false" title=""><span class="ui-button-icon-primary ui-icon ui-icon-close"></span><span class="ui-button-text"></span></button></br>
+        <table>
+            <tr>
+                <td><label for="splitter_form_perc">Fraction of traffic that goes to the top channel</label></td>
+                <td><input type="text" name="splitter_form_perc" id="splitter_form_perc" value="" class="text ui-widget-content ui-corner-all"></td>
+            </tr>
+        </table>
+        <hr>
+        <button id="splitter_form_delete" class="settings_form_delete ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" role="button" aria-disabled="false"><span class="ui-button-icon-primary ui-icon ui-icon-trash"></span><span class="ui-button-text">Delete</span></button>
+        <button id="splitter_form_disconnect" class="settings_form_disconnect ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Disconnect</span></button>
+        <button id="splitter_form_save" class="settings_form_save ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Apply</span></button>
+    </div>
+
+    <div id="switch_form" title="Switch Properties" class="settings_form" style="display: none;">
+        <button id="switch_form_close" class="settings_form_close ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only" role="button" aria-disabled="false" title=""><span class="ui-button-icon-primary ui-icon ui-icon-close"></span><span class="ui-button-text"></span></button></br>
+        <table>
+            <tr>
+                <td><label for="switch_form_param1">Distribution</label></td>
+                <td><input type="text" name="switch_form_param1" id="switch_form_param1" value="" class="text ui-widget-content ui-corner-all"></td>
+            </tr>
+            <tr>
+                <td><label for="switch_form_param1">Param 1</label></td>
+                <td><input type="text" name="switch_form_param1" id="switch_form_param1" value="" class="text ui-widget-content ui-corner-all"></td>
+            </tr>
+            <tr>
+                <td><label for="switch_form_param2">Param 2</label></td>
+                <td><input type="text" name="switch_form_param2" id="switch_form_param2" value="" class="text ui-widget-content ui-corner-all"></td>
+            </tr>
+        </table>
+        <hr>
+        <button id="switch_form_delete" class="settings_form_delete ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" role="button" aria-disabled="false"><span class="ui-button-icon-primary ui-icon ui-icon-trash"></span><span class="ui-button-text">Delete</span></button>
+        <button id="switch_form_disconnect" class="settings_form_disconnect ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Disconnect</span></button>
+        <button id="switch_form_save" class="settings_form_save ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Apply</span></button>
+    </div>
+
+    <div id="splitfunc_form" title="Function Splitter Properties" class="settings_form" style="display: none;">
+        <button id="splitfunc_form_close" class="settings_form_close ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only" role="button" aria-disabled="false" title=""><span class="ui-button-icon-primary ui-icon ui-icon-close"></span><span class="ui-button-text"></span></button></br>
+        <table>
+            <tr>
+                <td><label for="splitfunc_form_funct">Function to determine what traffic goes to the top channel </label></td>
+                <td><input type="text" name="splitfunc_form_funct" id="splitfunc_form_funct" value="" class="text ui-widget-content ui-corner-all"></td>
+            </tr>
+        </table>
+        <hr>
+        <button id="splitfunc_form_delete" class="settings_form_delete ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" role="button" aria-disabled="false"><span class="ui-button-icon-primary ui-icon ui-icon-trash"></span><span class="ui-button-text">Delete</span></button>
+        <button id="splitfunc_form_disconnect" class="settings_form_disconnect ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Disconnect</span></button>
+        <button id="splitfunc_form_save" class="settings_form_save ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Apply</span></button>
+    </div>
+
+
+
+    
+
+    <div id="udo_form" title="Source Properties" class="settings_form" style="display: none;">
+        <button id="source_form_close" class="settings_form_close ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only" role="button" aria-disabled="false" title=""><span class="ui-button-icon-primary ui-icon ui-icon-close"></span><span class="ui-button-text"></span><b></b></button></br>
+        
+        <div id="udo_form_to_append">
+              
+        </div>
+
+        <form id="form1" runat="server">
+
+            <br />
+            <div id="TextBoxContainer">
+            <!--Textboxes will be added here -->
+
+            </div>
+            <input id="btnAdd" class = "btn_text" type="button" value="add" onclick="AddTextBox()" />
+            <br />
+            
+        </form>
+
+        <script type="text/javascript">
+
+        var count = -1;
+
+        function GetDynamicTextBox(value){
+            return '<select name="source_dropdown" class = "btn_text" id="dropdown_'+ value + '" onChange="dropper();">' +
+                        '<option  value="INT">INT</option>' +
+                        '<option  value="FLOAT">FLOAT</option>' +
+                        '<option  value="BOOLEAN">BOOLEAN</option>' +
+                    '</select>' +
+
+           '<input name = "DynamicTextBox_'+ value+'" type="text" style="font-size:15px"/>' +
+            '<input type="button" value="Remove" class = "btn_text" onclick = "RemoveTextBox(this)" />' +
+            '<input id="use_'+value+'" type="button" class = "btn_text" value="Use" onClick="disableDis('+value+')"/>' +
+            '<input id="dis_'+value+'"type="button" class = "btn_text" value="Disable" onClick="disableUse('+value+')"/>'
+
+
+ 
+        
+        }
+
+        function disableDis(value) {
+            document.getElementById("use_"+value).disabled = true;
+            document.getElementById("dis_"+value).disabled = false;
+        }
+
+        function disableUse(value) {
+            document.getElementById("use_"+value).disabled = false;
+            document.getElementById("dis_"+value).disabled = true;
+        }
+
+        function AddTextBox() {
+            count++;
+            var div = document.createElement('DIV');
+            div.innerHTML = GetDynamicTextBox(count);
+            document.getElementById("TextBoxContainer").appendChild(div);
+        }
+ 
+        function RemoveTextBox(div) { // name conflict error
+            count--;
+            document.getElementById("TextBoxContainer").removeChild(div.parentNode);
+        }
+ 
+        function RecreateDynamicTextboxes() {
+            var values = eval('<%=Values%>');
+            if (values != null) {
+                var html = "";
+                for (var i = 0; i < values.length; i++) {
+                    html += "<div>" + GetDynamicTextBox(values[i]) + "</div>";
+                }
+                document.getElementById("TextBoxContainer").innerHTML = html;
+            }
+        }
+        window.onload = RecreateDynamicTextboxes;
+        </script>
+        
+        
+       <!-- <button id="source_form_delete" class="settings_form_delete ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" role="button" aria-disabled="false"><span class="ui-button-icon-primary ui-icon ui-icon-trash"></span><span class="ui-button-text">Delete</span></button>
+        <button id="source_form_disconnect" class="settings_form_disconnect ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Disconnect</span></button>
+        <button id="source_form_save" class="settings_form_save ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Apply</span></button> -->
+
+    </div>
+
+    
+    
+    <!-- modified code ends here -->
+
+
+<div class="ui-dialog ui-widget ui-widget-content ui-corner-all ui-draggable" tabindex="-1" role="dialog" aria-labelledby="ui-dialog-title-verify_clear" style="display: none; z-index: 1000; outline: 0px;"><div class="ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix"><span class="ui-dialog-title" id="ui-dialog-title-verify_clear">&nbsp;</span><a href="#" class="ui-dialog-titlebar-close ui-corner-all" role="button"><span class="ui-icon ui-icon-closethick">close</span></a></div><div id="verify_clear" class="ui-dialog-content ui-widget-content">
+        <p><span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;"></span>
+            Do you wish to discard the scenario in the canvas?</p>
+    </div><div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix"><div class="ui-dialog-buttonset"><button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Cancel</span></button><button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Ok</span></button></div></div></div><div class="ui-dialog ui-widget ui-widget-content ui-corner-all ui-draggable" tabindex="-1" role="dialog" aria-labelledby="ui-dialog-title-save_dialog" style="display: none; z-index: 1000; outline: 0px;"><div class="ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix"><span class="ui-dialog-title" id="ui-dialog-title-save_dialog">Save</span><a href="#" class="ui-dialog-titlebar-close ui-corner-all" role="button"><span class="ui-icon ui-icon-closethick">close</span></a></div><div id="save_dialog" class="ui-dialog-content ui-widget-content">
+        <p>Copy-paste the text below in a text file.You can load this scenario later
+            by clicking the 'Load' button in the toolbar, and pasting this text.</p>
+        <textarea id="save_textarea" name="save_textarea" rows="20" cols="80"></textarea>
+    </div></div><div class="ui-dialog ui-widget ui-widget-content ui-corner-all ui-draggable" tabindex="-1" role="dialog" aria-labelledby="ui-dialog-title-load_dialog" style="display: none; z-index: 1000; outline: 0px;"><div class="ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix"><span class="ui-dialog-title" id="ui-dialog-title-load_dialog">Load</span><a href="#" class="ui-dialog-titlebar-close ui-corner-all" role="button"><span class="ui-icon ui-icon-closethick">close</span></a></div><div id="load_dialog" class="ui-dialog-content ui-widget-content">
+        <p>Copy the text below</p>
+        <textarea id="load_textarea" name="load_textarea" rows="20" cols="80"></textarea>
+    </div><div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix"><div class="ui-dialog-buttonset"><button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Cancel</span></button><button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Load</span></button></div></div></div><i title="Raphaël Colour Picker" style="display: none; color: rgb(255, 192, 203);"></i><iframe name="oauth2relay622341419" id="oauth2relay622341419" src="https://accounts.google.com/o/oauth2/postmessageRelay?parent=http%3A%2F%2Fsimjs.com#rpctoken=438235500&amp;forcesecure=1" tabindex="-1" style="width: 1px; height: 1px; position: absolute; top: -100px;"></iframe></body></html>

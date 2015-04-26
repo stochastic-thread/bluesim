@@ -1,0 +1,93 @@
+@charset "utf-8";
+
+/*all action pullout (input) stuff here*/
+
+.perimeter { bottom: 173px; }
+	#perimeter-err { padding: 5px 0px; } /* currently unused*/
+
+.is_convex { bottom: 146px; }
+	#is_convex-err { padding: 5px 0px; } /* currently unused*/
+
+.cut_polygon { bottom: 119px; }
+	#cut_polygon-err { padding: 5px 0px; } /* currently unused*/
+
+.point_inside { bottom: 92px; }
+	#point_inside-err { padding: 5px 0px; } /* currently unused*/
+
+.graham { bottom: 60px; }
+	#graham-err { padding: 8px 0px 7px; } /* currently unused*/
+
+/*all tutorial stuff here*/
+#geometry-tutorial-1 {
+	top: 60px;
+	left: 60px;
+	width: 250px;
+}
+#geometry-tutorial-2 {
+	bottom: 260px;
+	left: 60px;
+	width: 220px;
+}
+	#geometry-tutorial-2:before {
+		top: 100%;
+		left: 20%;
+		border-top-color: black;
+		margin-left: -10px;
+	}
+#geometry-tutorial-3 {
+	top: 450px;
+	left: 50%;
+	width: 200px;
+	margin-left: -110px;
+}
+	#geometry-tutorial-3:before {
+		bottom: 100%;
+		left: 50%;
+		border-bottom-color: black;
+		margin-left: -10px;
+	}
+#geometry-tutorial-4 {
+	bottom: 335px;
+	right: 150px;
+	width: 200px;
+}
+	#geometry-tutorial-4:before {
+		top: 100%;
+		left: 20%;
+		border-top-color: black;
+		margin-left: -10px;
+	}
+#geometry-tutorial-5 {
+	bottom: 275px;
+	right: 170px;
+	width: 180px;
+}
+	#geometry-tutorial-5:before {
+		top: 100%;
+		left: 20%;
+		border-top-color: black;
+		margin-left: -10px;
+	}
+#geometry-tutorial-6 {
+	bottom: 70px;
+	left: 50%;
+	width: 220px;
+	margin-left: -120px;
+}
+	#geometry-tutorial-6:before {
+		top: 100%;
+		left: 50%;
+		border-top-color: black;
+		margin-left: -10px;
+	}
+#geometry-tutorial-7 {
+	top: 70px;
+	right: 60px;
+	width: 150px;
+}
+	#geometry-tutorial-7:before {
+		bottom: 100%;
+		left: 50%;
+		border-bottom-color: black;
+		margin-left: -10px;
+	}

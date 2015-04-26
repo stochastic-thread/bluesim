@@ -1,0 +1,146 @@
+
+function setUDO(){
+
+    // this is where you can modify the dialog box of UDO
+    var b = $("#udo_form");
+    b.show().position({
+        of: $("#config_sim"),
+        at: "left bottom",
+        my: "left top"
+    });
+
+	//alert("you clicked edit udo");
+	
+	//Push the fields that the user enteres in the forms as a tuple of the form
+	//(field name, field type)
+	// for all the fields entered
+	//LIST__OF_PARAMETERS.push()
+
+    //This function resets every source form.  Can probably find a way not to call this unless
+    // user has updated the UDO in any way...
+    // will need a way to save state and show state like the entities (probably just copy their code
+    // and implement it here)...
+	// clearAndUpdateForm();
+	
+
+	// get name that user entered from form
+	//var udoName = document.getElementById("udo_form_name");
+	
+	//assign name that user entered in form
+	//NAME_OF_OBJECT;
+
+	//list name that user entered from form
+	//var udoNameDisplay = document.getElementById("udo_name").innerHTML = NAME_OF_OBJECT;
+
+	// var myWindow = window.open("", "", "width=200, height=100");
+
+	// window.onload = RecreateDynamicTextboxes;
+}
+
+
+var numUserAttributes = -1;
+var asfd 
+
+
+// this fucntion chnages the global udo_use boolean when radio button in changed. 
+function checkRadioButtonsForUdo(){
+    if(document.getElementById("use_radio_button").checked){
+        USE_UDO = true;
+        //alert("in udo true");
+     }else if(document.getElementById("disable_radio_button").checked){
+        USE_UDO = false;
+        //alert("in udo false");
+     }
+
+}
+
+function GetDynamicTextBox(value){
+    return '<select name="source_dropdown" class = "btn_text" id="udo_dropdown_'+ value + '">' +
+                '<option  value="INT">INT</option>' +
+                '<option  value="FLOAT">FLOAT</option>' +
+                '<option  value="BOOLEAN">BOOLEAN</option>' +
+            '</select>' +
+
+   '<input id="udo_text_box_'+ value+'" type="text" style="font-size:15px"/>' +
+    '<input type="button" value="Remove" class="settings_form_delete ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" onclick = "RemoveTextBox(this)" />'
+
+}
+
+//<button id="source_form_delete" class="settings_form_delete ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" role="button" aria-disabled="false"><span class="ui-button-icon-primary ui-icon ui-icon-trash"></span><span class="ui-button-text"><span class="ui-button-icon-primary ui-icon ui-icon-trash"></span><span class="ui-button-text">Delete</span></span></button>
+
+
+function disableDis(value) {
+    document.getElementById("use_"+value).disabled = true;
+    document.getElementById("dis_"+value).disabled = false;
+}
+
+function disableUse(value) {
+    document.getElementById("use_"+value).disabled = false;
+    document.getElementById("dis_"+value).disabled = true;
+}
+
+function addTextBox() {
+    document.getElementById("btnApply").style.display = "block";
+    numUserAttributes++;
+    var div = document.createElement('DIV');
+    div.innerHTML = GetDynamicTextBox(numUserAttributes);
+    document.getElementById("TextBoxContainer").appendChild(div);
+}
+
+function RemoveTextBox(div) { // name conflict error
+    numUserAttributes--;
+    document.getElementById("TextBoxContainer").removeChild(div.parentNode);
+}
+
+function RecreateDynamicTextboxes() {
+    var values = eval('<%=Values%>');
+    if (values != null) {
+        var html = "";
+        for (var i = 0; i < values.length; i++) {
+            html += "<div id=udo_div" +  i  + ">" + GetDynamicTextBox(values[i]) + "</div>";
+        }
+        document.getElementById("TextBoxContainer").innerHTML = html;
+    }
+}
+window.onload = RecreateDynamicTextboxes;
+
+function saveUDOParams() {
+
+    // Use LIST_OF_PARAMETERS
+    LIST_OF_PARAMETERS = [numUserAttributes+1];
+
+    for (var i = 0; i <= numUserAttributes; i++) {
+        var value = document.getElementById("udo_text_box_" + i).value;
+        if (value == null)
+            continue;
+        var type = document.getElementById("udo_dropdown_" + i);
+        type = type.options[type.selectedIndex].value;
+        // save values
+        LIST_OF_PARAMETERS[i] = [value, type];
+    }
+
+    //PRIMITIVE METHOD
+    if(UPDATE_FORM != null){
+        clearAndUpdateForm();    
+    }  
+    
+    console.log(LIST_OF_PARAMETERS);
+
+}
+
+//function popForm(){
+
+  //   var parentForm = document.getElementById("udo_form_to_append");
+    // var div = document.createElement('div');
+     //div.innerHTML = GetDynamicTextBox("");
+//}	
+
+//setUDO.prototype.showSettings = function() {
+  //  var a = $("#udo_form");
+    //QueueApp.form_view = this.view;
+    //a.show().position({
+      //  of: $(this.view.image.node),
+        //at: "center center",
+        //my: "left top"
+    //})
+//};

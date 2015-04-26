@@ -1,0 +1,160 @@
+@charset "utf-8";
+
+#viz {
+	width: 900px;
+	height: 400px;
+	margin: 0px auto;	
+	position: relative;
+	font-family: "PT Sans";
+	font-size: 20px;
+	font-weight: bold;
+}
+
+.bit {
+	width: 32px;
+	height: 32px;
+	font-family: "PT Sans";
+	font-size: 20px;
+	font-weight: bold;
+	position: absolute;
+	box-sizing: border-box;
+}
+
+.viz-text {
+	position: absolute;
+	width: 80px;
+	text-align: left;
+	color: #bbb;
+}
+	#op-text {
+		color: black;
+		text-align: right;
+	}
+	#S-text { top: 104px; }
+	#j-text { top: 139px; }
+	#result-text { top: 190px; }
+
+#divider {
+	height: 3px;
+	background: black;
+	position: absolute;
+}
+
+/*action pullout stuff*/
+.setFlags { bottom: 200px; }
+	#setFlags-input input {
+		width: 25px;
+		padding: 8px 8px 8px;
+	}
+	#setFlags-go p { padding: 7px 8px 8px; }
+	#setFlags-err { padding: 8px 0px 7px; }
+		
+.set { bottom: 173px; }
+	#set-input input {
+		width: 25px;
+		padding: 6px 8px 5px;
+	}
+	#set-go p { padding: 5px 8px; }
+	#set-err { padding: 5px 0px; }
+
+.check { bottom: 146px; }
+	#check-input input {
+		width: 25px;
+		padding: 6px 8px 5px;
+	}
+	#check-go p { padding: 5px 8px; }
+	#check-err { padding: 5px 0px; }
+		
+.toggle {	bottom: 119px; }
+	#toggle-input input {
+		width: 25px;
+		padding: 6px 8px 5px;
+	}
+	#toggle-go p { padding: 5px 8px; }
+	#toggle-err { padding: 5px 0px; }
+		
+.clear { bottom: 92px; }
+	#clear-input input {
+		width: 25px;
+		padding: 6px 8px 5px;
+	}
+	#clear-go p { padding: 5px 8px; }
+	#clear-err { padding: 5px 0px; }
+		
+.lsone { bottom: 60px; }
+	#lsone-err { padding: 8px 0px 7px; }
+
+/*tutorial stuff*/
+#bitmask-tutorial-1 {
+	top: 60px;
+	left: 60px;
+	width: 250px;
+}
+#bitmask-tutorial-2 {
+	bottom: 260px;
+	left: 60px;
+	width: 220px;
+}
+	#bitmask-tutorial-2:before {
+		top: 100%;
+		left: 20%;
+		border-top-color: black;
+		margin-left: -10px;
+	}
+#bitmask-tutorial-3 {
+	top: 300px;
+	left: 50%;
+	width: 200px;
+	margin-left: -110px;
+}
+	#bitmask-tutorial-3:before {
+		bottom: 100%;
+		left: 50%;
+		border-bottom-color: black;
+		margin-left: -10px;
+	}
+#bitmask-tutorial-4 {
+	bottom: 335px;
+	right: 150px;
+	width: 200px;
+}
+	#bitmask-tutorial-4:before {
+		top: 100%;
+		left: 20%;
+		border-top-color: black;
+		margin-left: -10px;
+	}
+#bitmask-tutorial-5 {
+	bottom: 275px;
+	right: 170px;
+	width: 180px;
+}
+	#bitmask-tutorial-5:before {
+		top: 100%;
+		left: 20%;
+		border-top-color: black;
+		margin-left: -10px;
+	}
+#bitmask-tutorial-6 {
+	bottom: 70px;
+	left: 50%;
+	width: 220px;
+	margin-left: -120px;
+}
+	#bitmask-tutorial-6:before {
+		top: 100%;
+		left: 50%;
+		border-top-color: black;
+		margin-left: -10px;
+	}
+#bitmask-tutorial-7 {
+	top: 70px;
+	right: 60px;
+	width: 150px;
+}
+	#bitmask-tutorial-7:before {
+		bottom: 100%;
+		left: 50%;
+		border-bottom-color: black;
+		margin-left: -10px;
+	}

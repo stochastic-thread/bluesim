@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+<title>VisuAlgo - Test</title>
+<link rel="icon" type="image/png" href="img/favicon.png" />
+
+<!--css-->
+<link rel="stylesheet" href="css/normalize.css">
+<link rel="stylesheet" href="css/common.css">
+<link rel="stylesheet" href="css/viz.css">
+<link rel="stylesheet" href="css/test_common.css">
+<link rel="stylesheet" href="css/testmode.css">
+
+<!--js-->
+<script src="js/external/jquery-1.10.2.js"></script>
+<script src="js/external/d3.v3.js"></script>
+<script src="js/common.js"></script>
+<script src="js/test/test_mode_constant.js"></script>
+<script src="js/test/question_wordings.js"></script>
+<!--more scripts are below-->
+
+<!--fonts-->
+<link href="fonts/silkscreen/stylesheet.css" rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=PT+Sans:400,700' rel='stylesheet' type='text/css'>
+
+</head>
+
+<body>
+
+<div id="top-bar">
+	<a id="home" href="index.html">Visu<span class="colour">Algo</span></a>
+    <span id="title">
+    	<a class="selected-viz" href="test.html">Test</a>
+    </span>
+</div>
+
+<div id="login-screen">
+	<h1>All the best!</h1>
+    <form>
+    	<input id="login-id" type="text" value="user id" autocomplete="off"/><br/>
+        <input id="login-pw" type="text" value="password"/><br/>
+        <input id="login-go" type="submit" value="LOG IN" />
+        <div id="login-err"></div>
+    </form>
+</div>
+
+<div id="instructions-screen">
+	<h2>Instructions</h2>
+    <ul id="instructions">
+		<li><strong>You have 1 (one) attempt only.</strong></li><!--might need to change this if multiple attempts allowed-->
+		<li>You have 40 minutes to do this test. When the time is up, the test will be submitted automatically.</li><!--might need to change time stated-->
+		<li>Do not refresh your browser, go back, open another window, or close the window while taking the test.</li>
+		<li>Your score is only valid if you are physically present in the lab.</li>
+		<li>You are not allowed to discuss the questions or answers until 5pm today, even with your fellow lab group mates.</li>
+		<li>In the case of any disputes, the decision of the lecturer is final.</li>
+	</ul>
+    <input id="start-test" type="submit" value="Start the test"/>
+</div>
+
+<div id="test-screen">
+	<div id="qn-no"></div>
+	<div id="qn-text">
+    	<p></p>
+        
+        <div id="subset"></div>
+        <div id="mcq"></div>
+        <input class="number-input" type="text" autocomplete="off" title="Enter the numeric value"/>
+        
+    	<input id="undo-ans" type="button" style="margin-right: 8px;" value="Undo">
+        <input id="clear-ans" type="button" value="Clear">
+        <div id="current-selection"></div>
+    </div>
+    <div id="viz"></div>
+
+	<div id="info">
+        <div id="student-name">JOHN DOE</div>
+        <div id="time-left"></div>
+        <input id="submit-test" type="button" value="Submit Quiz">
+    </div>
+    
+    <div id="submit-check" class="overlays">
+    	<p></p>
+        <input id="submit-yes" type="button" value="Yes"><!--
+        --><input id="submit-no" type="button" value="No">
+    </div>
+    
+	<div id="question-nav"></div>
+</div>
+
+<div id="result-screen">
+	<div id="result-name"></div>
+    You scored 
+    <div id="score"></div>
+    <a id="to-scoreboard" href="index.html">Log out</a>
+</div>
+
+<div id="left-bar"></div>
+<div id="right-bar"></div>
+<!-- Bottom bar and overlay popups -->
+<div id="bottom-bar">
+	<a id="trigger-about">About</a>
+    <a id="trigger-team">Team</a>
+    <a id="trigger-terms">Terms of use</a>
+</div>
+
+<div id="dark-overlay"></div>
+<div id="about" class="overlays"></div>
+<div id="team" class="overlays"></div>
+<div id="termsofuse" class="overlays"></div>
+<div id="custom-alert" class="overlays">
+	<div class="content"><p></p></div>
+</div>
+
+<script src="js/graph_library/constant.js"></script>
+<script src="js/graph_library/properties.js"></script>
+<script src="js/graph_library/helperObjects.js"></script>
+<script src="js/graph_library/misc.js"></script>
+<script src="js/graph_library/Widget.js"></script>
+<script src="js/graph_library/GraphWidget.js"></script>
+<script src="js/graph_library/GraphVertexWidget.js"></script>
+<script src="js/graph_library/GraphEdgeWidget.js"></script>
+
+<script src="js/test/test_common.js"></script>
+<script src="js/test/testmode.js"></script>
+<script src="js/test/answer_interface.js"></script>
+<script src="js/test/question_processing.js"></script>
+
+</body>
+</html>

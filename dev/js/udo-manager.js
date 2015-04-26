@@ -1,0 +1,204 @@
+
+function setUDO() {
+
+    var b = $("#udo_form");
+    b.show().position({
+        of: $("#add_udo"),
+        at: "left bottom",
+        my: "right top"
+    });
+
+    // document.getElementById("use_udo_button").checked = true;
+    // document.getElementById("use_udo_button").disabled = false;
+}
+
+
+var numUserAttributes = 0;
+
+var set_for_udo_shown = new Set(); // keeps track of shown table rows in udo form
+
+var stack_for_udo_hidden = []; // keeps track of hidden table rows in udo form
+
+// since the fileds are hidden, adding to hidden stack
+stack_for_udo_hidden.push(4);
+stack_for_udo_hidden.push(3);
+stack_for_udo_hidden.push(2);
+stack_for_udo_hidden.push(1);
+
+// hiding 4 fields when udo form starts
+    // $("#udo_row_1").hide();
+    // $("#udo_row_2").hide();
+    // $("#udo_row_3").hide();
+    // $("#udo_row_4").hide();
+
+// this fucntion chnages the global udo_use boolean when radio button in changed. 
+function checkRadioButtonsForUdo() {
+
+    if(document.getElementById("use_radio_button").checked){
+        USE_UDO = true;
+        document.getElementById("use_udo_button").disabled = false;
+        document.getElementById("use_function_button").checked = true;
+        document.getElementById("use_function_button").disabled = false;
+        populateSplitForm();
+ 
+        //alert("in udo true");
+
+     }else if(document.getElementById("disable_radio_button").checked){
+        USE_UDO = false;
+        document.getElementById("use_udo_button").disabled = true;
+        document.getElementById("use_function_button").checked = true;
+        document.getElementById("use_function_button").disabled = false;
+        populateSplitForm();
+        $("#server_param1").show(); 
+        $("#server_param2").show(); 
+        //alert("in udo false");
+
+     }
+
+}
+
+function toggle(element) {
+    element.checked = !element.checked
+    element.disabled = !element.disabled
+}
+
+// function GetDynamicTextBox(){
+//    numUserAttributes++;
+
+//    var parentTable = document.getElementById("udo_dailogue_table");
+
+//    var tableRow = document.createElement('tr');
+//    tableRow.id = "tableRow_"+ numUserAttributes;
+
+//    tableRow.innerHTML = 
+//                        '<td> <input id="udo_text_box_'+ numUserAttributes+'" type="text" class="text ui-widget-content ui-corner-all"/>' +
+//                            '</td>' +
+//                        '<td> <select name="source_dropdown" class = " ui-widget-content ui-corner-all" id="udo_dropdown_'+ numUserAttributes + '">' +
+//                                '<option  value="INT">INT</option>' +
+//                                '<option  value="FLOAT">FLOAT</option>' +
+//                                '<option  value="BOOLEAN">BOOLEAN</option>' +
+//                                '</select>' +
+//                            '</td>' +
+//                        '<td> <button class="ui-button ui-widget ui-state-default ui-corner-all  " onclick = "RemoveTextBox('+ numUserAttributes+')" />' +
+//                            '<span class="ui-button-text">Remove</span></button> ' + '</td>';
+
+//    parentTable.appendChild(tableRow);
+// }
+
+function disableDis(value) {
+    document.getElementById("use_"+value).disabled = true;
+    document.getElementById("dis_"+value).disabled = false;
+}
+
+function disableUse(value) {
+    document.getElementById("use_"+value).disabled = false;
+    document.getElementById("dis_"+value).disabled = true;
+}
+
+function removeUdoTableRow(value) { // name conflict error
+
+  stack_for_udo_hidden.push(value);
+  set_for_udo_shown.delete(value);
+  $("#udo_row_" + value).hide();
+}
+
+function addUdoTableRow(){
+
+  if(stack_for_udo_hidden.length != 0){
+    var temp = stack_for_udo_hidden.pop();
+    set_for_udo_shown.add(temp);
+    $("#udo_row_" + temp).show();
+
+  }
+
+}
+
+// function RecreateDynamicTextboxes() {
+//     var values = eval('<%=Values%>');
+
+//     alert("in recreateDynamicTextboxes: " +values);
+
+//     if (values != null) {
+//         var html = "";
+//         for (var i = 0; i < values.length; i++) {
+//             html += "<div id=udo_div" +  i  + ">" + GetDynamicTextBox(values[i]) + "</div>";
+//         }
+//         document.getElementById("TextBoxContainer").innerHTML = html;
+//     }
+// }
+
+// window.onload = RecreateDynamicTextboxes;
+
+function saveUDOParams() {
+
+    // Use LIST_OF_PARAMETERS, which is # of fields shown and stored in our set
+    LIST_OF_PARAMETERS = [];
+    var counter_for_list_of_param = 0; // counts indexes for the LIST_OFPARAMETERS because we can't use i anymore in the for loop
+    checkRadioButtonsForUdo();
+    //var udoFormParent = document.getElementById("TextBoxContainer").children.length;
+
+    var value0 = document.getElementById("udo_text_box_0").value;
+
+    if (value0 != null){
+        var type0 = document.getElementById("udo_dropdown_0");
+        type0 = type0.options[type0.selectedIndex].value;
+        // save values
+        LIST_OF_PARAMETERS[counter_for_list_of_param] = [value0, type0];
+        counter_for_list_of_param++;
+    }
+        
+    for (var i of set_for_udo_shown) {
+        var value = document.getElementById("udo_text_box_" + i).value;
+
+        if (value == null)
+            continue;
+
+        var type = document.getElementById("udo_dropdown_" + i);
+        type = type.options[type.selectedIndex].value;
+        // save values
+        LIST_OF_PARAMETERS[counter_for_list_of_param] = [value, type];
+        counter_for_list_of_param++;
+    }
+
+    console.log("saveUDOParams");
+    //This method is clearing dialogues and set them to defualt for entities when UDO's are removed   
+    if(UPDATE_FORM != null || UPDATE_SPLIT_FORM != null || UPDATE_SERVER_FORM != null || UPDATE_FUNC_FORM != null){
+        var splitter_present = false;
+        if(QueueApp.models.length != 0){
+            for(var i = 0; i < QueueApp.models.length; i++){
+                var test = QueueApp.models[i];
+                QueueApp.models[i]._params = null;
+                QueueApp.models[i].clearAndUpdateForm();
+                if (test.view.name.indexOf("splitfunc") != -1){
+                  splitter_present = true;
+                }
+            }
+        }
+
+    }
+
+    if (splitter_present){
+      alert("WARNRING: splitter function changed");
+    }
+
+    
+
+    $("#udo_form").hide();
+}
+
+//function popForm(){
+
+  //   var parentForm = document.getElementById("udo_form_to_append");
+    // var div = document.createElement('div');
+     //div.innerHTML = GetDynamicTextBox("");
+//}	
+
+//setUDO.prototype.showSettings = function() {
+  //  var a = $("#udo_form");
+    //QueueApp.form_view = this.view;
+    //a.show().position({
+      //  of: $(this.view.image.node),
+        //at: "center center",
+        //my: "left top"
+    //})
+//};

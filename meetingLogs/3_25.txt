@@ -1,0 +1,36 @@
+March 25, 2015
+Bluesim meeting
+
+All about design during this meeting.
+From our discussion with Purtilo, scratch was a good place to start
+
+Everyone on the team looked over scratch. On the theme of visual programming 
+Arthur proposed a javascript program that allowed users to visualize algorithms.
+There was also mentioning of another drag n'drop package, Alice.
+Since both Scratch and the visual algorithm package were full fledged programs
+clone-able on github, we would have to edit their source code.
+Nicolas suggested using the sim.js library and then we would build a front-end 
+on top of it.
+
+Either we are going to build from the top down or the ground up. During the discussion
+we also noticed the authors of sim.js wrote a limited but complete frontend for
+the queuing simulations. This would be a great springboard for us.
+
+We are divided on using the either using the full packages or building up
+sim.js library. Forgetting the work involved in building from new or replacing 
+existing code, the visual packages are great about showing the animations of
+data flowing through the simulation. This really hits on Purtilo's point about
+articulation of processes; however, it is not clear how we are going to gather
+statistics other than modifying the packages. On the flip side, sim.js makes
+it very easy to get reporting and the demo the authors wrote gives stats well too.
+
+Both themes still fit with what Purtilo wants. We are set on a drag and drop design.
+We constantly try to make sure examples like queuing systems and flow charts that are easy
+to implement in our designs. In every case, there were clear options for save/edit/share
+the projects. 
+
+Our plan moving forward is to discuss with Purtilo tomorrow after class. Should
+we focus on reporting or animations? How does he feel about us using these software
+packages?
+
+After discussing with him, we can get a whole draft of a design over the weekend.

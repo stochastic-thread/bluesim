@@ -1,0 +1,7 @@
+var Data = function(){
+	this.timer = 0;
+	this.fields = {};
+	for(i = 0; i < LIST_OF_PARAMETERS.length; i++){
+		this.fields[LIST_OF_PARAMETERS[i][0]] = 0;
+	}
+}

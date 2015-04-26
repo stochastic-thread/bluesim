@@ -1,0 +1,18 @@
+April 7, 2015
+Bluesim meeting
+
+We discussed some more design points because there was debate about the use of the custom objects, to summarize:
+	There is only one global object instead of allowing each source to be an object
+		this approach will be less prone to errors
+		we cannot think of a specific example that would require us to allow the user to have many custom objects at once
+	Object creation is determined in the source or inherently in the object definition
+		while there is a nice division in putting the distributions and parameters that fill in the fields of the custom objects
+		we greatly limit the complexity of the custom objects if we only allow them to be edited in their object definition
+		instead, we only define the fields of the object
+		within each source, the distribution and parameters of each field are instantiated
+			oh and the type of the field can also be declared in the object
+We have reviewed work on the proposal
+	we need to push this out asap
+	we spent most of the meeting discussing the proposal and writing parts of it
+	the plan is to write most of it on our own and then come to the meeting on wednesday to polish the paper together
+	submit the proposal to Purtilo asap and then get ready for him to reject it and want certain revision

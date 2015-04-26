@@ -1,0 +1,281 @@
+
+
+function SourceModel(a) {
+    this.updateForm = null;
+    this.view = a;
+    this.params = [null, null];
+    this.distribution = 'random'
+    this.dest = null;
+    this.spawn = null
+    this.udoFields = {}
+    this.view.image.attr({
+        title: "Parameters = " + this.params + " Distribution = " + this.distribution
+    })
+}
+
+SourceModel.prototype.loadUDOFields = function(struct){
+
+	for(prop in struct){
+		this.udoFields[prop] = struct[prop];
+	}
+};
+
+SourceModel.prototype.jsonify = function() {
+	this.update();
+    return {
+        params: this.params,
+        distribution: this.distribution,
+		udoFields: this.udoFields
+    }
+};
+
+SourceModel.prototype.start = function() {
+    /* ensure that the source is up-to-date on UDO params */
+    this.update()
+    this.entity = QueueApp.sim.addEntity(SourceEntity, this.distribution, this.params, this.udoFields)
+};
+
+SourceModel.prototype.connect = function() {
+    this.entity.dest = this.dest ? this.dest.entity : null
+};
+
+/* 
+* in QueueApp whenever fields of UDO are changed, 
+* must called this function on all Source models 
+* every is set to default here
+*
+* HERE
+* every time user wants to edit params of the source
+*/
+SourceModel.prototype.update = function() {
+    for(var i = 0; i < LIST_OF_PARAMETERS.length; i++){
+        var name = LIST_OF_PARAMETERS[i][0];
+        var type = LIST_OF_PARAMETERS[i][1];
+        /* check existence of field */
+        if(this.udoFields[name]){
+            /* check for update of field type */
+            if(!this.udoFields[name]['type']){
+                /* update */
+                this.udoFields[name] = {
+                    type: type,
+                    distribution: 'random',
+                    params: [null,null],
+                    boolBase: this.udoFields[name]['boolBase'],
+                }
+            }
+        }
+        /* create new entry in udo dictionary */
+        else{
+            this.udoFields[name] = {
+                type: type,
+                distribution: 'random',
+                params: [null,null],
+                boolBase: 0
+            }
+        }
+        /* update divs here */
+    }
+}
+
+/* TODO with frontend */
+SourceModel.prototype.showSettings = function() {
+    // this.update();
+    /* front end team needs to promise us divs to access */
+    console.log("showSettings");
+    createForm();
+    
+    var a = $("#source_form");
+    QueueApp.form_view = this.view;
+    // alert(this.distribution);
+    a.find("#dropdown").val(this.distribution);
+    if(this.params.length == 2){
+        a.find("#source_form_param1").val(this.params[0])
+        a.find("#source_form_param2").val(this.params[1])
+    }
+    else if(this.params.length == 1){
+        a.find("#source_form_param1").val(this.params[0])
+    }
+    a.find("#source_form_spawn").val(this.spawn)
+    a.show().position({
+        of: $(this.view.image.node),
+        at: "center center",
+        my: "left top"
+    })
+};
+
+/* TODO with frontend */
+SourceModel.prototype.saveSettings = function() {
+    /* front end needs to promise us divs to access */
+    a = $("#source_form")
+    var e = document.getElementById("dropdown_1");
+    // console.log(e);
+    this.distribution = e.options[e.selectedIndex].value;
+    // = a.find("#source_form_distribution").val();
+    
+        
+    this.params = [];
+    this.params.push(a.find("#source_form_param1").val());
+    this.params.push(a.find("#source_form_param2").val());
+    switch(this.distribution){
+        case "exponential":
+            this.params = [this.params[0], null]
+            break
+        case "random":
+            this.params = [null, null];
+            break
+        case "gaussian":
+            this.params = [this.params[0], this.params[1]];
+            break
+    }
+    this.spawn = a.find("#source_form_spawn").val()
+    this.view.image.attr({
+        title: "Parameters = " + this.params + " Distribution = " + this.distribution
+    })
+};
+
+SourceModel.prototype.unlink = function() {
+    this.view = null
+};
+
+SourceModel.prototype.showStats = function() {
+    this.view.showCounters(NaN, this.entity.generated)
+
+    //call animation manager funtion
+   // var value = a.toFixed(1);
+    stat_animation_manager(this.view.image.node.id, "source", 100);
+};
+
+var SourceEntity = {
+    start: function(a, b, c) {
+		//Arguments: this.distribution, this.params, udofields
+		this.distribution = a
+        this.params = b;
+        this.message = null;
+        this.setTimer(0).done(this.traffic);
+        this.spawn = 0
+		this.udoFields = c;
+       // this.updateForm = null;
+    },
+    /* actual data generation */
+    traffic: function() {
+        if(!this.dest){
+            return;
+        }
+		this.message = new Data();
+        this.message.timer = this.time()
+        for(var property in this.message.fields){
+            if(this.message.fields.hasOwnProperty(property)){
+                this.message.fields[property] = randDist(
+                    this.udoFields[property].distribution,
+                    this.udoFields[property].params,
+                    QueueApp.random
+                );
+				/*
+					type checking
+						BOOLEAN (compares value to boolBase)
+						INT (Round)
+						FLOAT (does nothing)
+				*/
+				switch(this.udoFields[property]['type']){
+					case "BOOLEAN":
+						this.message.fields[property] = 
+                        (this.message.fields[property] > this.udoFields[property][boolBase]);
+						break;
+					case "INT":
+						this.message.fields[property] =
+							Math.round(this.message.fields[property])
+						break;
+				}
+            }
+        }
+        this.send(this.message,0,this.dest);
+        this.spawn++;
+        this.setTimer(randDist(this.distribution, this.params, QueueApp.random)).done(this.traffic)
+    }
+};
+
+function createForm(){
+
+    //check created so that we don't update the form over and over
+    if(this.updateForm == null){
+        populateForm();
+        this.updateForm = "not null";
+    }
+}
+
+//clearing the form to be updated again form new UDO information.
+// this function is very primitive at the moment
+function clearAndUpdateForm(){
+    var a = document.getElementById("source_form_to_append");
+    a.innerHTML = "";
+
+    populateForm();
+}
+
+//fills form with functionand parameters based on UDO if 
+function populateForm(){
+    var parentForm = document.getElementById("source_form_to_append");
+   // parentForm.innerHTML = "sfgdfgd";
+
+    //use LIST_OF_PARMATERS.length for size
+   // alert("size of LIST_OF_PARAMETERS : " + LIST_OF_PARAMETERS.length);
+
+
+    //create new form for source if UDO exists
+    if (LIST_OF_PARAMETERS.length == 0){
+
+        for (var i = 0; i<2;i++){
+
+            var newDiv = document.createElement('div');
+            newDiv.id = "source_table_" + i;
+
+            newDiv.innerHTML = '<table>'  +
+              '<tr>' +
+                    '<td><label for="source_form_distribution">Choose your distribution function</label></td>' +
+                    '<td><select name="source_dropdown_'+ i + '" id="source_table_'+ i + '_dropdown_' + i + '" onChange="dropper('+ i +')">' + 
+                            '<option value="gaussian">Gaussian</option>' + 
+                            '<option value="exponential">Exponential</option>' +
+                            '<option value="pareto">Pareto</option>' +
+                        '</select>' + 
+                    '</td></tr>' +
+                '<tr id="source_table_'+ i + '_param1">' +
+                    '<td><label for="source_form_param1">Parameter 1</label></td>' +
+                    '<td><input type="text" name="source_form_param1" id="source_form_param1" value="" class="text ui-widget-content ui-corner-all"></td></tr>' +
+                '<tr id="source_table_'+ i + '_param2">' +
+                    '<td><label for="source_form_param2">Parameter 2</label></td>' +
+                    '<td><input type="text" name="source_form_param2" id="source_form_param2" value="" class="text ui-widget-content ui-corner-all"></td></tr>' + 
+            '</table>';
+            
+            parentForm.appendChild(newDiv);
+        }
+    } else {
+        alert("create window for ping, not UDO");
+    }
+
+
+//update parameter fields based on user input
+//consider having to save input fields from user in case they switch around...
+
+}
+
+
+function dropper(index){
+
+    var e = document.getElementById("source_table_" + index + "_dropdown_" + index);
+    var dropOption = e.options[e.selectedIndex].value;
+
+    if(dropOption == "gaussian"){
+        $("#source_table_" + index + "_param1").show();  // Both parameters shows up
+        $("#source_table_" + index + "_param2").show();                                             
+
+    }else if(dropOption == "exponential"){ // param1 shows but param2 hidden
+        $("#source_table_" + index + "_param1").show(); 
+        $("#source_table_" + index + "_param2").hide(); 
+
+    }else if(dropOption == "pareto"){ // param1 and param2 both are hidden
+        $("#source_table_" + index + "_param2").hide();
+        $("#source_table_" + index + "_param1").hide();
+      
+    }
+
+}

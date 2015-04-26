@@ -1,0 +1,27 @@
+#main, #scoreboard-screen {
+	width: 600px;
+	margin: 0px auto;
+}
+
+/*for control panel only*/
+#scoreboard-screen {
+	display: none;
+	margin-top: 60px;
+}
+
+table {
+	display: none;
+	width: 600px;
+	border-collapse: collapse;
+	margin-bottom: 20px;
+}
+
+th, td {
+	border: 1px solid #ccc;
+	text-align: left;
+	padding: 5px 8px;
+}
+
+#avg {
+	font-weight: bold;
+}

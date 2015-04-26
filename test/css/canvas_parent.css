@@ -1,0 +1,23 @@
+#canvas_parent {
+    display: inline-block;	
+}
+
+#canvas {
+	float: left;
+}
+
+#udo_toolbar {
+	float: right;
+	height: 400px;
+	width: 100px;
+	background-color: red;
+}
+
+#outer-div {
+		background-color : transparent;
+}
+
+
+
+
+	

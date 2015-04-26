@@ -1,0 +1,110 @@
+
+var entitiesToGraph = [];
+
+function setSimulationResults(){
+
+	entitiesToGraph = [];
+	getEntitiesToGraph();
+	clearForm();
+	if (USE_UDO){
+		createUDOResultForm();
+	} else{
+		createPingResultForm();
+	}
+
+}
+
+function getEntitiesToGraph(){
+	for (var i = 0; i < QueueApp.models.length;i++){
+		checkEntityToAdd(QueueApp.models[i]);
+	}
+}
+
+function checkEntityToAdd(model){
+
+	if (USE_UDO){
+		if (model.view.type != "splitter" || model.view.type != "func" || model.view.type != "reverser"){
+			alert(model.view.name);
+			entitiesToGraph.push(model);
+		}
+	} else {
+		if (model.view.type == "queue" || model.view.type == "sink"){
+			entitiesToGraph.push(model);
+		}
+	}
+}
+
+function clearForm(){
+
+	var resultsDiv = document.getElementById("graph_form_to_append");
+	resultsDiv.innerHTML = "";
+
+}
+
+function createUDOResultForm(){
+	alert("entities to show : " + entitiesToGraph.length);
+	var resultsDiv = document.getElementById("graph_form_to_append");
+
+	var a = $("#graph_form");
+    a.show().position({
+    	of : $("#config_sim"),
+        at: "center center",
+        my: "left top"
+    });
+
+	for (var i = 0;i < entitiesToGraph.length;i++){
+
+	}
+
+}
+
+function createPingResultForm(){
+	
+	var resultsDiv = document.getElementById("graph_form_to_append");
+
+	var a = $("#graph_form");
+    a.show().position({
+    	of : $("#config_sim"),
+        at: "center center",
+        my: "left top"
+    });
+
+	for (var i = 0;i < entitiesToGraph.length;i++){
+			
+		var newCheck = document.createElement("div");
+		
+		 newCheck.innerHTML =
+		 	'<table>' +
+		 	'<tr><td><div class="onoffswitch">' +
+			    '<input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="myonoffswitch_'+i+'" onclick="checkOnOffSwitchNoUDO('+i+')" >' +
+			    '<label class="onoffswitch-label" for="myonoffswitch_'+i+'">' +
+			        '<span class="onoffswitch-inner"></span>' +
+			        '<span class="onoffswitch-switch"></span>' +
+			    '</label></div><td><td><font size="3">' + entitiesToGraph[i].view.name + '</font></td></tr>';	
+        
+		resultsDiv.appendChild(newCheck);
+
+	}
+}
+
+function appendUDOFields(){
+
+}
+
+function checkOnOffSwitchNoUDO(i){
+	var checked = document.getElementById("myonoffswitch_"+i).checked;
+	
+	if (checked){
+		graphEntity(entitiesToGraph[i], null);
+	}
+}
+
+function graphEntity(model, UDOField){
+	
+	
+	if (UDOField == null){			//graphing when the simulation ran without UDO 
+		a
+	} else {
+
+	}
+}

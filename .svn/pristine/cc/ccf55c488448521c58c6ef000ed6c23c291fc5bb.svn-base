@@ -1,0 +1,31 @@
+/* list of tuples (field name, field type) */
+LIST_OF_PARAMETERS = []
+
+/* name of object being instantiated in sources.. just superficial */
+NAME_OF_OBJECT = "Ping"
+
+/* map of distributions we will support, each points to the number of parameters it needs */
+LIST_OF_DISTRIBUTIONS = {constant: 1, gaussian: 2, exponential: 1, random: 0};
+
+/* on the fly random number distributor */
+function randDist(distString, paramArrayArray, randObject){
+	switch(distString){
+		case "gaussian":
+			return randObject.normal(paramArray[0], paramArray[1]);
+		case "gamma":
+			return randObject.gamma(paramArray[0],paramArray[1]);
+		case "exponential":
+			return randObject.exponential(paramArrays[0]);
+		case "weibull":
+			return randObject.weibull(paramArray[0],paramArray[1]);
+		case "pareto":
+			return randObject.pareto(paramArray[0]);
+		case "constant":
+			return paramArray[0];
+		case "uniform":
+			return randObject.uniform(paramArray[0], paramArray[1]);
+		default:
+			return randObject.random();
+	}
+	console.log("randDist had a problem");
+}

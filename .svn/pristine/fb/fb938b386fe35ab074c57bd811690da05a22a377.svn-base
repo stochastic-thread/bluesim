@@ -1,0 +1,102 @@
+
+function SinkModel(a) {
+    this.view = a;
+    this.entity = null;
+    this.udoStats = []; //udoStats.name, total, min, max
+    this.statTable = $("#sink_stats").clone().attr("id", a.name);
+    this.statTable.find("h2").text(a.name);
+    $("#results").append(this.statTable);
+    this.stat = [this.statTable.find("#depart"), this.statTable.find("#pop"), this.statTable.find("#popd"), this.statTable.find("#stay"), this.statTable.find("#stayd")]
+}
+
+SinkModel.prototype.jsonify = function() {
+    return null
+};
+
+SinkModel.prototype.start = function() {
+    this.entity = QueueApp.sim.addEntity(SinkEntity)
+    //initialize UDO field statistics
+    for(i = 0; i < LIST_OF_PARAMETERS.length; i++){
+    	this.udoStats[i].name = LIST_OF_PARAMETERS[i][0];
+    	this.udoStats[i].total = 0;
+    	this.udoStats[i].max = null;
+    	this.udoStats[i].min = null;
+    }
+};
+
+SinkModel.prototype.connect = function() {};
+
+SinkModel.prototype.showSettings = function() {
+    var a = $("#sink_form");
+    QueueApp.form_view = this.view;
+    a.show().position({
+        of: $(this.view.image.node),
+        at: "center center",
+        my: "left top"
+    })
+};
+
+SinkModel.prototype.saveSettings = function() {};
+
+SinkModel.prototype.showStats = function() {
+    var a = this.entity.population;
+    this.stat[0].text(a.durationSeries.count());
+    this.stat[1].text(a.sizeSeries.average().toFixed(3));
+    this.stat[2].text(a.sizeSeries.deviation().toFixed(3));
+    this.stat[3].text(a.durationSeries.average().toFixed(3));
+    this.stat[4].text(a.durationSeries.deviation().toFixed(3));
+    this.view.showCounters(a.durationSeries.count(), NaN)
+    
+
+    //call animation manager funtion
+    var value = a.durationSeries.average().toFixed(3);
+    stat_animation_manager(this.view.image.node.id, "sink", value);
+};
+
+SinkModel.prototype.unlink = function() {
+    this.statTable.remove();
+    this.stat = this.view = null
+};
+
+var SinkEntity = {
+    start: function() {
+        this.population = new Sim.Population
+		//debug
+		this.statTrack = []
+    },
+    onMessage: function(sender, message) {
+		//message must be a time value
+        message || (message.timer = 0);
+        this.population.enter(message.timer);
+        this.population.leave(message.timer, this.time());
+        
+        //Update UDO field statistics
+        for(i = 0; i < LIST_OF_PARAMETERS.length; i++){
+
+        	this.udoStats[i].total += message.fields[LIST_OF_PARAMETERS[i][0]];
+
+        	if(this.udoStats[i].max == null){
+        		this.udoStats[i].max = message.fields[LIST_OF_PARAMETERS[i][0]];
+        		this.udoStats[i].min = message.fields[LIST_OF_PARAMETERS[i][0]];
+        	} 
+        	else if(message[LIST_OF_PARAMETERS[i][0]] > this.udoStats[i].max) {
+        		this.udoStats[i].max = message.fields[LIST_OF_PARAMETERS[i][0]];
+        	}
+        	else if(message[LIST_OF_PARAMETERS[i][0]] > this.udoStats[i].min) {
+        		this.udoStats[i].min = message.fields[LIST_OF_PARAMETERS[i][0]];
+        	}
+        }
+
+		
+		//debug
+		for(var property in message.fields){
+			var inst_prop = []
+			if(message.fields.hasOwnProperty(property)){
+				inst_prop.push(message.fields[property])
+            }
+			this.statTrack.push(inst_prop)
+		}
+    }
+};
+
+

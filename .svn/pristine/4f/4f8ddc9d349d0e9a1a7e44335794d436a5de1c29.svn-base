@@ -1,0 +1,1853 @@
+function Sim() {
+    this.simTime = 0;
+    this.entities = [];
+    this.queue = new Sim.PQueue;
+    this.endTime = 0;
+    this.entityId = 1
+}
+Sim.prototype.time = function() {
+    return this.simTime
+};
+Sim.prototype.sendMessage = function() {
+    var a = this.source,
+        b = this.msg,
+        c = this.data,
+        d = a.sim;
+    if (c)
+        if (c instanceof Array)
+            for (e = c.length - 1; e >= 0; e--) f = c[e], f !== a && f.onMessage && f.onMessage.call(f, a, b);
+        else c.onMessage && c.onMessage.call(c, a, b);
+    else
+        for (var e = d.entities.length - 1; e >= 0; e--) {
+            var f = d.entities[e];
+            f !== a && f.onMessage && f.onMessage.call(f, a, b)
+        }
+};
+Sim.prototype.addEntity = function(a) {
+    if (!a.start) throw Error("Entity prototype must have start() function defined");
+    if (!a.time) a.time = function() {
+            return this.sim.time()
+        }, a.setTimer = function(a) {
+            a = new Sim.Request(this, this.sim.time(), this.sim.time() + a);
+            this.sim.queue.insert(a);
+            return a
+        }, a.waitEvent = function(a) {
+            var b = new Sim.Request(this, this.sim.time(), 0);
+            b.source = a;
+            a.addWaitList(b);
+            return b
+        }, a.queueEvent = function(a) {
+            var b = new Sim.Request(this, this.sim.time(), 0);
+            b.source = a;
+            a.addQueue(b);
+            return b
+        }, a.useFacility =
+        function(a, b) {
+            var c = new Sim.Request(this, this.sim.time(), 0);
+            c.source = a;
+            a.use(b, c);
+            return c
+        }, a.putBuffer = function(a, b) {
+            var c = new Sim.Request(this, this.sim.time(), 0);
+            c.source = a;
+            a.put(b, c);
+            return c
+        }, a.getBuffer = function(a, b) {
+            var c = new Sim.Request(this, this.sim.time(), 0);
+            c.source = a;
+            a.get(b, c);
+            return c
+        }, a.putStore = function(a, b) {
+            var c = new Sim.Request(this, this.sim.time(), 0);
+            c.source = a;
+            a.put(b, c);
+            return c
+        }, a.getStore = function(a, b) {
+            var c = new Sim.Request(this, this.sim.time(), 0);
+            c.source = a;
+            a.get(b, c);
+            return c
+        },
+        a.send = function(a, b, c) {
+            b = new Sim.Request(this.sim, this.time(), this.time() + b);
+            b.source = this;
+            b.msg = a;
+            b.data = c;
+            b.deliver = this.sim.sendMessage;
+            this.sim.queue.insert(b)
+        }, a.log = function(a) {
+            this.sim.log(a, this)
+        };
+    var b = function(a) {
+        function b() {}
+        if (a == null) throw TypeError();
+        if (Object.create) return Object.create(a);
+        var c = typeof a;
+        if (c !== "object" && c !== "function") throw TypeError();
+        b.prototype = a;
+        return new b
+    }(a);
+    b.sim = this;
+    b.id = this.entityId++;
+    this.entities.push(b);
+    if (arguments.length > 1) {
+        for (var c = [], d = 1; d < arguments.length; d++) c.push(arguments[d]);
+        b.start.apply(b, c)
+    } else b.start();
+    return b
+};
+Sim.prototype.simulate = function(a, b) {
+    if (!b) b = Math.Infinity;
+    for (var c = 0;;) {
+        c++;
+        if (c > b) return !1;
+        var d = this.queue.remove();
+        if (d == void 0) break;
+        if (d.deliverAt > a) break;
+        this.simTime = d.deliverAt;
+        d.cancelled || d.deliver()
+    }
+    this.finalize();
+    return !0
+};
+Sim.prototype.runLoop = function() {
+    for (;;) {
+        var a = this.queue.remove();
+        if (a == void 0) break;
+        if (a.deliverAt > this.endTime) break;
+        this.simTime = a.deliverAt;
+        a.cancelled || a.deliver()
+    }
+    this.finalize()
+};
+Sim.prototype.finalize = function() {
+    for (var a = 0; a < this.entities.length; a++) this.entities[a].finalize && this.entities[a].finalize()
+};
+Sim.prototype.setLogger = function(a) {
+    this.logger = a
+};
+Sim.prototype.log = function(a, b) {
+    if (this.logger) {
+        var c = "";
+        b !== void 0 && (c = b.name ? " [" + b.name + "]" : " [" + b.id + "] ");
+        this.logger(this.simTime.toFixed(6) + c + "   " + a)
+    }
+};
+Sim.Facility = function(a, b, c, d) {
+    this.free = c ? c : 1;
+    this.servers = c ? c : 1;
+    this.maxqlen = d === void 0 ? -1 : 1 * d;
+    switch (b) {
+        case Sim.Facility.LCFS:
+            this.use = this.useLCFS;
+            this.queue = new Sim.Queue;
+            break;
+        case Sim.Facility.PS:
+            this.use = this.useProcessorSharing;
+            this.queue = [];
+            break;
+        default:
+            this.use = this.useFCFS;
+            this.freeServers = Array(this.servers);
+            this.queue = new Sim.Queue;
+            for (a = 0; a < this.freeServers.length; a++) this.freeServers[a] = !0
+    }
+    this.stats = new Sim.Population;
+    this.busyDuration = 0
+};
+Sim.Facility.FCFS = 1;
+Sim.Facility.LCFS = 2;
+Sim.Facility.PS = 3;
+Sim.Facility.NumDisciplines = 4;
+Sim.Facility.prototype.reset = function() {
+    this.queue.reset();
+    this.stats.reset();
+    this.busyDuration = 0
+};
+Sim.Facility.prototype.systemStats = function() {
+    return this.stats
+};
+Sim.Facility.prototype.queueStats = function() {
+    return this.queue.stats
+};
+Sim.Facility.prototype.usage = function() {
+    return this.busyDuration
+};
+Sim.Facility.prototype.finalize = function(a) {
+    this.stats.finalize(a);
+    this.queue.stats.finalize(a)
+};
+Sim.Facility.prototype.useFCFS = function(a, b) {
+    if (this.maxqlen === 0 && !this.free || this.maxqlen > 0 && this.queue.size() >= this.maxqlen) b.msg = -1, b.deliverAt = b.entity.time(), b.entity.sim.queue.insert(b);
+    else {
+        b.duration = a;
+        var c = b.entity.time();
+        this.stats.enter(c);
+        this.queue.push(b, c);
+        this.useFCFSSchedule(c)
+    }
+};
+Sim.Facility.prototype.useFCFSSchedule = function(a) {
+    for (; this.free > 0 && !this.queue.empty();) {
+        var b = this.queue.shift(a);
+        if (!b.cancelled) {
+            for (var c = 0; c < this.freeServers.length; c++)
+                if (this.freeServers[c]) {
+                    this.freeServers[c] = !1;
+                    b.msg = c;
+                    break
+                }
+            this.free--;
+            this.busyDuration += b.duration;
+            b.cancelRenegeClauses();
+            c = new Sim.Request(this, a, a + b.duration);
+            c.done(this.useFCFSCallback, this, b);
+            b.entity.sim.queue.insert(c)
+        }
+    }
+};
+Sim.Facility.prototype.useFCFSCallback = function(a) {
+    this.free++;
+    this.freeServers[a.msg] = !0;
+    this.stats.leave(a.scheduledAt, a.entity.time());
+    this.useFCFSSchedule(a.entity.time());
+    a.deliver()
+};
+Sim.Facility.prototype.useLCFS = function(a, b) {
+    if (this.currentRO) this.busyDuration += this.currentRO.entity.time() - this.currentRO.lastIssued, this.currentRO.remaining = this.currentRO.deliverAt - this.currentRO.entity.time(), this.queue.push(this.currentRO, b.entity.time());
+    this.currentRO = b;
+    if (!b.saved_deliver) b.cancelRenegeClauses(), b.remaining = a, b.saved_deliver = b.deliver, b.deliver = this.useLCFSCallback, this.stats.enter(b.entity.time());
+    b.lastIssued = b.entity.time();
+    b.deliverAt = b.entity.time() + a;
+    b.entity.sim.queue.insert(b)
+};
+Sim.Facility.prototype.useLCFSCallback = function() {
+    var a = this.source;
+    if (this == a.currentRO && (a.currentRO = null, a.busyDuration += this.entity.time() - this.lastIssued, a.stats.leave(this.scheduledAt, this.entity.time()), this.deliver = this.saved_deliver, delete this.saved_deliver, this.deliver(), !a.queue.empty())) {
+        var b = a.queue.pop(this.entity.time());
+        a.useLCFS(b.remaining, b)
+    }
+};
+Sim.Facility.prototype.useProcessorSharing = function(a, b) {
+    b.duration = a;
+    b.cancelRenegeClauses();
+    this.stats.enter(b.entity.time());
+    this.useProcessorSharingSchedule(b, !0)
+};
+Sim.Facility.prototype.useProcessorSharingSchedule = function(a, b) {
+    var c = a.entity.time(),
+        d = this.queue.length,
+        e = b ? (d + 1) / d : (d - 1) / d,
+        f = [];
+    if (this.queue.length === 0) this.lastIssued = c;
+    for (var g = 0; g < d; g++) {
+        var i = this.queue[g];
+        if (i.ro !== a) {
+            var h = new Sim.Request(this, c, c + (i.deliverAt - c) * e);
+            h.ro = i.ro;
+            h.source = this;
+            h.deliver = this.useProcessorSharingCallback;
+            f.push(h);
+            i.cancel();
+            a.entity.sim.queue.insert(h)
+        }
+    }
+    if (b) h = new Sim.Request(this, c, c + a.duration * (d + 1)), h.ro = a, h.source = this, h.deliver = this.useProcessorSharingCallback,
+        f.push(h), a.entity.sim.queue.insert(h);
+    this.queue = f;
+    this.queue.length == 0 && (this.busyDuration += c - this.lastIssued)
+};
+Sim.Facility.prototype.useProcessorSharingCallback = function() {
+    var a = this.source;
+    this.cancelled || (a.stats.leave(this.ro.scheduledAt, this.ro.entity.time()), a.useProcessorSharingSchedule(this.ro, !1), this.ro.deliver())
+};
+Sim.Buffer = function(a, b, c) {
+    this.name = a;
+    this.capacity = b;
+    this.available = c === void 0 ? 0 : c;
+    this.putQueue = new Sim.Queue;
+    this.getQueue = new Sim.Queue
+};
+Sim.Buffer.prototype.current = function() {
+    return this.available
+};
+Sim.Buffer.prototype.size = function() {
+    return this.capacity
+};
+Sim.Buffer.prototype.get = function(a, b) {
+    this.getQueue.empty() && a <= this.available ? (this.available -= a, b.deliverAt = b.entity.time(), b.entity.sim.queue.insert(b), this.getQueue.passby(b.deliverAt), this.progressPutQueue()) : (b.amount = a, this.getQueue.push(b, b.entity.time()))
+};
+Sim.Buffer.prototype.put = function(a, b) {
+    this.putQueue.empty() && a + this.available <= this.capacity ? (this.available += a, b.deliverAt = b.entity.time(), b.entity.sim.queue.insert(b), this.putQueue.passby(b.deliverAt), this.progressGetQueue()) : (b.amount = a, this.putQueue.push(b, b.entity.time()))
+};
+Sim.Buffer.prototype.progressGetQueue = function() {
+    for (var a; a = this.getQueue.top();)
+        if (a.cancelled) this.getQueue.shift(a.entity.time());
+        else if (a.amount <= this.available) this.getQueue.shift(a.entity.time()), this.available -= a.amount, a.deliverAt = a.entity.time(), a.entity.sim.queue.insert(a);
+    else break
+};
+Sim.Buffer.prototype.progressPutQueue = function() {
+    for (var a; a = this.putQueue.top();)
+        if (a.cancelled) this.putQueue.shift(a.entity.time());
+        else if (a.amount + this.available <= this.capacity) this.putQueue.shift(a.entity.time()), this.available += a.amount, a.deliverAt = a.entity.time(), a.entity.sim.queue.insert(a);
+    else break
+};
+Sim.Buffer.prototype.putStats = function() {
+    return this.putQueue.stats
+};
+Sim.Buffer.prototype.getStats = function() {
+    return this.getQueue.stats
+};
+Sim.Store = function(a, b) {
+    this.name = a;
+    this.capacity = b;
+    this.objects = [];
+    this.putQueue = new Sim.Queue;
+    this.getQueue = new Sim.Queue
+};
+Sim.Store.prototype.current = function() {
+    return this.objects.length
+};
+Sim.Store.prototype.size = function() {
+    return this.capacity
+};
+Sim.Store.prototype.get = function(a, b) {
+    if (this.getQueue.empty() && this.current() > 0) {
+        var c = !1,
+            d;
+        if (a)
+            for (var e = 0; e < this.objects.length; e++) {
+                if (d = this.objects[e], a(d)) {
+                    c = !0;
+                    this.objects.splice(e, 1);
+                    break
+                }
+            } else d = this.objects.shift(), c = !0;
+        if (c) {
+            this.available--;
+            b.msg = d;
+            b.deliverAt = b.entity.time();
+            b.entity.sim.queue.insert(b);
+            this.getQueue.passby(b.deliverAt);
+            this.progressPutQueue();
+            return
+        }
+    }
+    b.filter = a;
+    this.getQueue.push(b, b.entity.time())
+};
+Sim.Store.prototype.put = function(a, b) {
+    this.putQueue.empty() && this.current() < this.capacity ? (this.available++, b.deliverAt = b.entity.time(), b.entity.sim.queue.insert(b), this.putQueue.passby(b.deliverAt), this.objects.push(a), this.progressGetQueue()) : (b.obj = a, this.putQueue.push(b, b.entity.time()))
+};
+Sim.Store.prototype.progressGetQueue = function() {
+    for (var a; a = this.getQueue.top();)
+        if (a.cancelled) this.getQueue.shift(a.entity.time());
+        else if (this.current() > 0) {
+        var b = a.filter,
+            c = !1,
+            d;
+        if (b)
+            for (var e = 0; e < this.objects.length; e++) {
+                if (d = this.objects[e], b(d)) {
+                    c = !0;
+                    this.objects.splice(e, 1);
+                    break
+                }
+            } else d = this.objects.shift(), c = !0;
+        if (c) this.getQueue.shift(a.entity.time()), this.available--, a.msg = d, a.deliverAt = a.entity.time(), a.entity.sim.queue.insert(a);
+        else break
+    } else break
+};
+Sim.Store.prototype.progressPutQueue = function() {
+    for (var a; a = this.putQueue.top();)
+        if (a.cancelled) this.putQueue.shift(a.entity.time());
+        else if (this.current() < this.capacity) this.putQueue.shift(a.entity.time()), this.available++, this.objects.push(a.obj), a.deliverAt = a.entity.time(), a.entity.sim.queue.insert(a);
+    else break
+};
+Sim.Store.prototype.putStats = function() {
+    return this.putQueue.stats
+};
+Sim.Store.prototype.getStats = function() {
+    return this.getQueue.stats
+};
+Sim.Event = function(a) {
+    this.name = a;
+    this.waitList = [];
+    this.queue = [];
+    this.isFired = !1
+};
+Sim.Event.prototype.addWaitList = function(a) {
+    this.isFired ? (a.deliverAt = a.entity.time(), a.entity.sim.queue.insert(a)) : this.waitList.push(a)
+};
+Sim.Event.prototype.addQueue = function(a) {
+    this.isFired ? (a.deliverAt = a.entity.time(), a.entity.sim.queue.insert(a)) : this.queue.push(a)
+};
+Sim.Event.prototype.fire = function(a) {
+    if (a) this.isFired = !0;
+    a = this.waitList;
+    this.waitList = [];
+    for (var b = 0; b < a.length; b++) a[b].deliver();
+    (a = this.queue.shift()) && a.deliver()
+};
+Sim.Event.prototype.clear = function() {
+    this.isFired = !1
+};
+Sim.Request = function(a, b, c) {
+    this.entity = a;
+    this.scheduledAt = b;
+    this.deliverAt = c;
+    this.callbacks = [];
+    this.cancelled = !1;
+    this.group = null
+};
+Sim.Request.prototype.cancel = function() {
+    if (this.group && this.group[0] != this) return this.group[0].cancel();
+    if (this.noRenege) return this;
+    if (!this.cancelled) {
+        this.cancelled = !0;
+        if (this.deliverAt == 0) this.deliverAt = this.entity.time();
+        if (this.source && (this.source instanceof Sim.Buffer || this.source instanceof Sim.Store)) this.source.progressPutQueue.call(this.source), this.source.progressGetQueue.call(this.source);
+        if (this.group)
+            for (var a = 1; a < this.group.length; a++)
+                if (this.group[a].cancelled = !0, this.group[a].deliverAt ==
+                    0) this.group[a].deliverAt = this.entity.time()
+    }
+};
+Sim.Request.prototype.done = function(a, b, c) {
+    this.callbacks.push([a, b, c]);
+    return this
+};
+Sim.Request.prototype.waitUntil = function(a, b, c, d) {
+    if (this.noRenege) return this;
+    this.entity.sim.queue.insert(this._addRequest(this.scheduledAt + a, b, c, d));
+    return this
+};
+Sim.Request.prototype.unlessEvent = function(a, b, c, d) {
+    if (this.noRenege) return this;
+    if (a instanceof Sim.Event) {
+        var e = this._addRequest(0, b, c, d);
+        e.msg = a;
+        a.addWaitList(e)
+    } else if (a instanceof Array)
+        for (var f = 0; f < a.length; f++) e = this._addRequest(0, b, c, d), e.msg = a[f], a[f].addWaitList(e);
+    return this
+};
+Sim.Request.prototype.setData = function(a) {
+    this.data = a;
+    return this
+};
+Sim.Request.prototype.deliver = function() {
+    this.cancelled || (this.cancel(), this.callbacks && (this.group && this.group.length > 0 ? this._doCallback(this.group[0].source, this.msg, this.group[0].data) : this._doCallback(this.source, this.msg, this.data)))
+};
+Sim.Request.prototype.cancelRenegeClauses = function() {
+    this.noRenege = !0;
+    if (this.group && this.group[0] == this)
+        for (var a = 1; a < this.group.length; a++)
+            if (this.group[a].cancelled = !0, this.group[a].deliverAt == 0) this.group[a].deliverAt = this.entity.time()
+};
+Sim.Request.prototype.Null = function() {
+    return this
+};
+Sim.Request.prototype._addRequest = function(a, b, c, d) {
+    a = new Sim.Request(this.entity, this.scheduledAt, a);
+    a.callbacks.push([b, c, d]);
+    if (this.group === null) this.group = [this];
+    this.group.push(a);
+    a.group = this.group;
+    return a
+};
+Sim.Request.prototype._doCallback = function(a, b, c) {
+    for (var d = 0; d < this.callbacks.length; d++) {
+        var e = this.callbacks[d][0];
+        if (e) {
+            var f = this.callbacks[d][1];
+            if (!f) f = this.entity;
+            var g = this.callbacks[d][2];
+            f.callbackSource = a;
+            f.callbackMessage = b;
+            f.callbackData = c;
+            g ? g instanceof Array ? e.apply(f, g) : e.call(f, g) : e.call(f);
+            f.callbackSource = null;
+            f.callbackMessage = null;
+            f.callbackData = null
+        }
+    }
+};
+Sim.Queue = function(a) {
+    this.name = a;
+    this.data = [];
+    this.timestamp = [];
+    this.stats = new Sim.Population
+};
+Sim.Queue.prototype.top = function() {
+    return this.data[0]
+};
+Sim.Queue.prototype.back = function() {
+    return this.data.length ? this.data[this.data.length - 1] : void 0
+};
+Sim.Queue.prototype.push = function(a, b) {
+    this.data.push(a);
+    this.timestamp.push(b);
+    this.stats.enter(b)
+};
+Sim.Queue.prototype.unshift = function(a, b) {
+    this.data.unshift(a);
+    this.timestamp.unshift(b);
+    this.stats.enter(b)
+};
+Sim.Queue.prototype.shift = function(a) {
+    var b = this.data.shift();
+    this.stats.leave(this.timestamp.shift(), a);
+    return b
+};
+Sim.Queue.prototype.pop = function(a) {
+    var b = this.data.pop();
+    this.stats.leave(this.timestamp.pop(), a);
+    return b
+};
+Sim.Queue.prototype.passby = function(a) {
+    this.stats.enter(a);
+    this.stats.leave(a, a)
+};
+Sim.Queue.prototype.finalize = function(a) {
+    this.stats.finalize(a)
+};
+Sim.Queue.prototype.reset = function() {
+    this.stats.reset()
+};
+Sim.Queue.prototype.clear = function() {
+    this.reset();
+    this.data = [];
+    this.timestamp = []
+};
+Sim.Queue.prototype.report = function() {
+    return [this.stats.sizeSeries.average(), this.stats.durationSeries.average()]
+};
+Sim.Queue.prototype.empty = function() {
+    return this.data.length == 0
+};
+Sim.Queue.prototype.size = function() {
+    return this.data.length
+};
+Sim.PQueue = function() {
+    this.data = []
+};
+Sim.PQueue.prototype.insert = function(a) {
+    var b = this.data.length;
+    this.data.push(a);
+    for (var c = this.data, d = c[b]; b > 0;) {
+        var e = Math.floor((b - 1) / 2);
+        if (c[e].deliverAt > a.deliverAt) c[b] = c[e], b = e;
+        else break
+    }
+    c[b] = d
+};
+Sim.PQueue.prototype.remove = function() {
+    var a = this.data,
+        b = a.length;
+    if (!(b <= 0)) {
+        if (b == 1) return this.data.pop();
+        var c = a[0];
+        a[0] = a.pop();
+        b--;
+        for (var d = 0, e = a[d]; d < Math.floor(b / 2);) {
+            var f = 2 * d + 1,
+                g = 2 * d + 2,
+                f = g < b && a[g].deliverAt < a[f].deliverAt ? g : f;
+            if (a[f].deliverAt > e.deliverAt) break;
+            a[d] = a[f];
+            d = f
+        }
+        a[d] = e;
+        return c
+    }
+};
+Sim.DataSeries = function(a) {
+    this.name = a;
+    this.reset()
+};
+Sim.DataSeries.prototype.reset = function() {
+    this.Q = this.A = this.W = this.Count = 0;
+    this.Max = -Infinity;
+    this.Min = Infinity;
+    this.Sum = 0;
+    if (this.histogram)
+        for (var a = 0; a < this.histogram.length; a++) this.histogram[a] = 0
+};
+Sim.DataSeries.prototype.setHistogram = function(a, b, c) {
+    this.hLower = a;
+    this.hUpper = b;
+    this.hBucketSize = (b - a) / c;
+    this.histogram = Array(c + 2);
+    for (a = 0; a < this.histogram.length; a++) this.histogram[a] = 0
+};
+Sim.DataSeries.prototype.getHistogram = function() {
+    return this.histogram
+};
+Sim.DataSeries.prototype.record = function(a, b) {
+    var c = b === void 0 ? 1 : b;
+    if (a > this.Max) this.Max = a;
+    if (a < this.Min) this.Min = a;
+    this.Sum += a;
+    this.Count++;
+    this.histogram && (a < this.hLower ? this.histogram[0]++ : a > this.hUpper ? this.histogram[this.histogram.length - 1]++ : this.histogram[Math.floor((a - this.hLower) / this.hBucketSize) + 1]++);
+    this.W += c;
+    if (this.W !== 0) {
+        var d = this.A;
+        this.A = d + c / this.W * (a - d);
+        this.Q += c * (a - d) * (a - this.A)
+    }
+};
+Sim.DataSeries.prototype.count = function() {
+    return this.Count
+};
+Sim.DataSeries.prototype.min = function() {
+    return this.Min
+};
+Sim.DataSeries.prototype.max = function() {
+    return this.Max
+};
+Sim.DataSeries.prototype.range = function() {
+    return this.Max - this.Min
+};
+Sim.DataSeries.prototype.sum = function() {
+    return this.Sum
+};
+Sim.DataSeries.prototype.sumWeighted = function() {
+    return this.A * this.W
+};
+Sim.DataSeries.prototype.average = function() {
+    return this.A
+};
+Sim.DataSeries.prototype.variance = function() {
+    return this.Q / this.W
+};
+Sim.DataSeries.prototype.deviation = function() {
+    return Math.sqrt(this.variance())
+};
+Sim.TimeSeries = function(a) {
+    this.dataSeries = new Sim.DataSeries(a)
+};
+Sim.TimeSeries.prototype.reset = function() {
+    this.dataSeries.reset();
+    this.lastTimestamp = this.lastValue = NaN
+};
+Sim.TimeSeries.prototype.setHistogram = function(a, b) {
+    this.dataSeries.setHistogram(a, b, nbucket)
+};
+Sim.TimeSeries.prototype.getHistogram = function() {
+    return this.dataSeries.getHistogram()
+};
+Sim.TimeSeries.prototype.record = function(a, b) {
+    isNaN(this.lastTimestamp) || this.dataSeries.record(this.lastValue, b - this.lastTimestamp);
+    this.lastValue = a;
+    this.lastTimestamp = b
+};
+Sim.TimeSeries.prototype.finalize = function(a) {
+    this.record(NaN, a)
+};
+Sim.TimeSeries.prototype.count = function() {
+    return this.dataSeries.count()
+};
+Sim.TimeSeries.prototype.min = function() {
+    return this.dataSeries.min()
+};
+Sim.TimeSeries.prototype.max = function() {
+    return this.dataSeries.max()
+};
+Sim.TimeSeries.prototype.range = function() {
+    return this.dataSeries.range()
+};
+Sim.TimeSeries.prototype.sum = function() {
+    return this.dataSeries.sum()
+};
+Sim.TimeSeries.prototype.average = function() {
+    return this.dataSeries.average()
+};
+Sim.TimeSeries.prototype.deviation = function() {
+    return this.dataSeries.deviation()
+};
+Sim.TimeSeries.prototype.variance = function() {
+    return this.dataSeries.variance()
+};
+Sim.Population = function(a) {
+    this.name = a;
+    this.population = 0;
+    this.sizeSeries = new Sim.TimeSeries;
+    this.durationSeries = new Sim.DataSeries
+};
+Sim.Population.prototype.reset = function() {
+    this.sizeSeries.reset();
+    this.durationSeries.reset();
+    this.population = 0
+};
+Sim.Population.prototype.enter = function(a) {
+    this.population++;
+    this.sizeSeries.record(this.population, a)
+};
+Sim.Population.prototype.leave = function(a, b) {
+    this.population--;
+    this.sizeSeries.record(this.population, b);
+    this.durationSeries.record(b - a)
+};
+Sim.Population.prototype.current = function() {
+    return this.population
+};
+Sim.Population.prototype.finalize = function(a) {
+    this.sizeSeries.finalize(a)
+};
+var Random = function(a) {
+    a = a === void 0 ? (new Date).getTime() : a;
+    this.N = 624;
+    this.M = 397;
+    this.MATRIX_A = 2567483615;
+    this.UPPER_MASK = 2147483648;
+    this.LOWER_MASK = 2147483647;
+    this.mt = Array(this.N);
+    this.mti = this.N + 1;
+    this.init_by_array([a], 1)
+};
+Random.prototype.init_genrand = function(a) {
+    this.mt[0] = a >>> 0;
+    for (this.mti = 1; this.mti < this.N; this.mti++) a = this.mt[this.mti - 1] ^ this.mt[this.mti - 1] >>> 30, this.mt[this.mti] = (((a & 4294901760) >>> 16) * 1812433253 << 16) + (a & 65535) * 1812433253 + this.mti, this.mt[this.mti] >>>= 0
+};
+Random.prototype.init_by_array = function(a, b) {
+    var c, d, e;
+    this.init_genrand(19650218);
+    c = 1;
+    d = 0;
+    for (e = this.N > b ? this.N : b; e; e--) {
+        var f = this.mt[c - 1] ^ this.mt[c - 1] >>> 30;
+        this.mt[c] = (this.mt[c] ^ (((f & 4294901760) >>> 16) * 1664525 << 16) + (f & 65535) * 1664525) + a[d] + d;
+        this.mt[c] >>>= 0;
+        c++;
+        d++;
+        c >= this.N && (this.mt[0] = this.mt[this.N - 1], c = 1);
+        d >= b && (d = 0)
+    }
+    for (e = this.N - 1; e; e--) f = this.mt[c - 1] ^ this.mt[c - 1] >>> 30, this.mt[c] = (this.mt[c] ^ (((f & 4294901760) >>> 16) * 1566083941 << 16) + (f & 65535) * 1566083941) - c, this.mt[c] >>>= 0, c++, c >= this.N && (this.mt[0] =
+        this.mt[this.N - 1], c = 1);
+    this.mt[0] = 2147483648
+};
+Random.prototype.genrand_int32 = function() {
+    var a, b = [0, this.MATRIX_A];
+    if (this.mti >= this.N) {
+        var c;
+        this.mti == this.N + 1 && this.init_genrand(5489);
+        for (c = 0; c < this.N - this.M; c++) a = this.mt[c] & this.UPPER_MASK | this.mt[c + 1] & this.LOWER_MASK, this.mt[c] = this.mt[c + this.M] ^ a >>> 1 ^ b[a & 1];
+        for (; c < this.N - 1; c++) a = this.mt[c] & this.UPPER_MASK | this.mt[c + 1] & this.LOWER_MASK, this.mt[c] = this.mt[c + (this.M - this.N)] ^ a >>> 1 ^ b[a & 1];
+        a = this.mt[this.N - 1] & this.UPPER_MASK | this.mt[0] & this.LOWER_MASK;
+        this.mt[this.N - 1] = this.mt[this.M - 1] ^ a >>> 1 ^
+            b[a & 1];
+        this.mti = 0
+    }
+    a = this.mt[this.mti++];
+    a ^= a >>> 11;
+    a ^= a << 7 & 2636928640;
+    a ^= a << 15 & 4022730752;
+    a ^= a >>> 18;
+    return a >>> 0
+};
+Random.prototype.genrand_int31 = function() {
+    return this.genrand_int32() >>> 1
+};
+Random.prototype.genrand_real1 = function() {
+    return this.genrand_int32() * (1 / 4294967295)
+};
+Random.prototype.random = function() {
+    if (this.pythonCompatibility) this.skip && this.genrand_int32(), this.skip = !0;
+    return this.genrand_int32() * (1 / 4294967296)
+};
+Random.prototype.genrand_real3 = function() {
+    return (this.genrand_int32() + 0.5) * (1 / 4294967296)
+};
+Random.prototype.genrand_res53 = function() {
+    var a = this.genrand_int32() >>> 5,
+        b = this.genrand_int32() >>> 6;
+    return (a * 67108864 + b) * 1.1102230246251565E-16
+};
+Random.prototype.LOG4 = Math.log(4);
+Random.prototype.SG_MAGICCONST = 1 + Math.log(4.5);
+Random.prototype.exponential = function(a) {
+    var b = this.random();
+    return -Math.log(b) / a
+};
+Random.prototype.gamma = function(a, b) {
+    if (a > 1)
+        for (var c = Math.sqrt(2 * a - 1), d = a - this.LOG4, e = a + c;;) {
+            var f = this.random();
+            if (!(f < 1.0E-7 || j > 0.9999999)) {
+                var g = 1 - this.random(),
+                    i = Math.log(f / (1 - f)) / c,
+                    h = a * Math.exp(i),
+                    f = f * f * g,
+                    i = d + e * i - h;
+                if (i + this.SG_MAGICCONST - 4.5 * f >= 0 || i >= Math.log(f)) return h * b
+            }
+        } else if (a == 1) {
+            for (var j = this.random(); j <= 1.0E-7;) j = this.random();
+            return -Math.log(j) * b
+        } else {
+            for (;;)
+                if (j = this.random(), h = (Math.E + a) / Math.E, j *= h, h = j <= 1 ? Math.pow(j, 1 / a) : -Math.log((h - j) / a), f = this.random(), j > 1) {
+                    if (f <= Math.pow(h,
+                            a - 1)) break
+                } else if (f <= Math.exp(-h)) break;
+            return h * b
+        }
+};
+Random.prototype.normal = function(a, b) {
+    var c = this.lastNormal;
+    this.lastNormal = NaN;
+    if (!c) {
+        var d = this.random() * 2 * Math.PI,
+            e = Math.sqrt(-2 * Math.log(1 - this.random())),
+            c = Math.cos(d) * e;
+        this.lastNormal = Math.sin(d) * e
+    }
+    return a + c * b
+};
+Random.prototype.pareto = function(a) {
+    var b = this.random();
+    return 1 / Math.pow(1 - b, 1 / a)
+};
+Random.prototype.triangular = function(a, b, c) {
+    var d = (c - a) / (b - a),
+        e = this.random();
+    return e <= d ? a + Math.sqrt(e * (b - a) * (c - a)) : b - Math.sqrt((1 - e) * (b - a) * (b - c))
+};
+Random.prototype.uniform = function(a, b) {
+    return a + this.random() * (b - a)
+};
+Random.prototype.weibull = function(a, b) {
+    var c = 1 - this.random();
+    return a * Math.pow(-Math.log(c), 1 / b)
+};
+var ImageView = function(a, b, c, d, e, f, g) {
+    this.canvas = a;
+    this.type = b;
+    this.name = c;
+    if (b === "queue") this.width = 116 * 0.8, this.height = 44, this.image = a.image("images/server.png", d, e, this.width, this.height);
+    else if (b === "source") this.image = a.image("images/customers.png", d, e, 34, 34), this.height = this.width = 34;
+    else if (b === "sink") this.height = this.width = 32, this.image = a.image("images/door_out.png", d, e, this.width, this.height);
+    this.x = d;
+    this.y = e;
+    this.hasIn = f;
+    this.hasOut = g;
+    this.text = a.text(d, e, this.name);
+    this.counters = a.text(d,
+        e, "");
+    this.counters.hide();
+    this.image.attr({
+        cursor: "move"
+    });
+    this.image.view = this;
+    this.image.animate({
+        scale: "1.2 1.2"
+    }, 200, function() {
+        this.animate({
+            scale: "1 1"
+        }, 200)
+    });
+    if (this.hasOut) this.arrow = a.image("images/orange-arrow.gif", d, e, 12, 12), this.arrow.view = this, this.arrow.drag(function(a, b) {
+        this.attr({
+            x: this.ox + a,
+            y: this.oy + b
+        });
+        this.paper.connection(this.conn)
+    }, function() {
+        this.conn = this.paper.connection(this.view.image, this, "#000");
+        this.ox = this.attr("x");
+        this.oy = this.attr("y")
+    }, function() {
+        this.conn.line.remove();
+        this.conn = null;
+        var a = QueueApp.views,
+            b = a.length,
+            c = this.attr("x"),
+            d = this.attr("y");
+        for (b -= 1; b >= 0; b--) {
+            var f = a[b];
+            if (f.acceptDrop(c, d)) {
+                this.hide();
+                this.view.connect(f);
+                return
+            }
+        }
+        a = this.view;
+        this.attr({
+            x: a.x + a.width + 2,
+            y: a.y + a.height / 2 - 6
+        })
+    });
+    this.moveto(d, e);
+    this.image.drag(function(a, b) {
+        var c = this.view;
+        c.moveto(c.ox + a, c.oy + b)
+    }, function() {
+        var a = this.view;
+        a.ox = a.x;
+        a.oy = a.y
+    }, function() {});
+    this.image.dblclick(function() {
+        this.view.model.showSettings()
+    })
+};
+ImageView.prototype.moveto = function(a, b) {
+    var c;
+    if (!(a > 600 - this.width || b > 400 - this.height || a < 0 || b < 0)) {
+        this.x = a;
+        this.y = b;
+        this.image.attr({
+            x: a,
+            y: b
+        });
+        this.text.attr({
+            x: this.x + this.width / 2,
+            y: this.y + this.height + 5
+        });
+        this.counters.attr({
+            x: this.x + this.width / 2,
+            y: this.y + this.height + 20
+        });
+        this.arrow && this.arrow.attr({
+            x: this.x + this.width + 2,
+            y: this.y + this.height / 2 - 6
+        });
+        if (this.hasIn) {
+            c = QueueApp.views.length;
+            for (c -= 1; c >= 0; c--) QueueApp.views[c].moveConnection(this)
+        }
+        this.arrow && this.arrow.conn && this.canvas.connection(this.arrow.conn)
+    }
+};
+ImageView.prototype.connect = function(a) {
+    var b = this.canvas.connection(this.image, a.dropObject(), "#000");
+    b.line.attr({
+        "stroke-width": 3,
+        stroke: "#F7D68A"
+    });
+    b.fromView = this;
+    b.toView = a;
+    this.arrow.conn = b;
+    this.arrow.hide();
+    this.model.dest = a.model
+};
+ImageView.prototype.unlink = function() {
+    var a, b;
+    a = QueueApp.models.length;
+    for (a -= 1; a >= 0; a--)
+        if (QueueApp.models[a] === this.model) {
+            b = a;
+            break
+        }
+    b && QueueApp.models.splice(b, 1);
+    this.model && this.model.unlink();
+    this.disconnect();
+    a = QueueApp.views.length;
+    for (a -= 1; a >= 0; a--) QueueApp.views[a].disconnect(this), QueueApp.views[a] === this && (b = a);
+    QueueApp.views.splice(b, 1);
+    this.image.remove();
+    this.arrow && this.arrow.remove();
+    this.counters.remove();
+    this.text.remove()
+};
+ImageView.prototype.disconnect = function(a) {
+    if (this.arrow && this.arrow.conn && (!a || this.arrow.conn.toView === a)) this.arrow.conn.line.remove(), this.arrow.conn = null, this.arrow.attr({
+        x: this.x + this.width + 2,
+        y: this.y + this.height / 2 - 6
+    }), this.arrow.show(), this.model.dest = null
+};
+ImageView.prototype.dropObject = function() {
+    return this.image
+};
+ImageView.prototype.acceptDrop = function(a, b) {
+    return !this.hasIn ? !1 : a > this.x - 10 && a < this.x + this.width + 10 && b > this.y - 10 && b < this.y + this.height + 10
+};
+ImageView.prototype.moveConnection = function(a) {
+    this.arrow && this.arrow.conn && this.arrow.conn.toView === a && this.canvas.connection(this.arrow.conn)
+};
+ImageView.prototype.jsonify = function() {
+    var a = {
+        x: this.x,
+        y: this.y,
+        type: this.type,
+        name: this.name
+    };
+    if (this.arrow && this.arrow.conn) a.out = this.arrow.conn.toView.name;
+    if (this.model) a.model = this.model.jsonify();
+    return a
+};
+ImageView.prototype.showCounters = function() {};
+var QueueApp = {
+    init: function() {
+        this.canvas = Raphael("canvas", 600, 400);
+        $("#new_file").button({
+            text: !1,
+            icons: {
+                primary: "ui-icon-document"
+            }
+        }).click(function() {
+            QueueApp.reset()
+        });
+        $("#load_file").button({
+            text: !1,
+            icons: {
+                primary: "ui-icon-folder-open"
+            }
+        }).click(function() {
+            QueueApp.load()
+        });
+        $("#save_file").button({
+            text: !1,
+            icons: {
+                primary: "ui-icon-disk"
+            }
+        }).click(function() {
+            QueueApp.save()
+        });
+        $("#file_ops").buttonset();
+        $("#verify_clear").dialog({
+            autoOpen: !1,
+            width: 250,
+            modal: !0,
+            resizable: !1,
+            buttons: {
+                Cancel: function() {
+                    $(this).dialog("close")
+                },
+                Ok: function() {
+                    $(this).dialog("close");
+                    QueueApp.reset(!0)
+                }
+            }
+        });
+        $("#save_dialog").dialog({
+            autoOpen: !1,
+            width: 450,
+            modal: !0,
+            resizable: !1
+        });
+        $("#load_dialog").dialog({
+            autoOpen: !1,
+            width: 450,
+            modal: !0,
+            resizable: !1,
+            buttons: {
+                Cancel: function() {
+                    $(this).dialog("close")
+                },
+                Load: function() {
+                    $(this).dialog("close");
+                    QueueApp.reset(!0);
+                    QueueApp.loadtext($("#load_textarea").val())
+                }
+            }
+        });
+        $("#play_sim").button({
+            icons: {
+                primary: "ui-icon-play"
+            }
+        }).click(function() {
+            QueueApp.startSim()
+        });
+        $("#config_sim").button({
+            icons: {
+                primary: "ui-icon-clock"
+            }
+        }).click(function() {
+            QueueApp.showSimProperties()
+        });
+        $("#sim_ops").buttonset();
+        $("#pause_sim").button({
+            text: !1,
+            icons: {
+                primary: "ui-icon-pause"
+            }
+        }).click(function() {
+            QueueApp.paused ? (QueueApp.paused = !1, $("#pause_sim").button("option", "icons", {
+                primary: "ui-icon-pause"
+            }), QueueApp.run()) : ($("#pause_sim").button("option", "icons", {
+                primary: "ui-icon-play"
+            }), QueueApp.paused = !0)
+        });
+        $("#stop_sim").button({
+            text: !1,
+            icons: {
+                primary: "ui-icon-stop"
+            }
+        }).click(function() {
+            QueueApp.playing = !1;
+            QueueApp.paused && QueueApp.complete()
+        });
+        $("#sim_play_ops").buttonset().hide();
+        this.progress =
+            $("#progressbar");
+        this.progress.progressbar().hide();
+        $(".settings_form_delete").button({
+            icons: {
+                primary: "ui-icon-trash"
+            }
+        }).click(function() {
+            QueueApp.form_view.unlink();
+            $(this).parent().hide()
+        });
+        $(".settings_form_disconnect").button().click(function() {
+            QueueApp.form_view.disconnect();
+            $(this).parent().hide()
+        });
+        $(".settings_form_save").button().click(function() {
+            QueueApp.form_view.model.saveSettings();
+            $(this).parent().hide()
+        });
+        $(".settings_form").hide();
+        $(".settings_form_close").button({
+            icons: {
+                primary: "ui-icon-close"
+            },
+            text: !1
+        }).click(function() {
+            $(this).parent().hide()
+        });
+        $("#simulation_dialog_save").button().click(function() {
+            $(this).parent().hide();
+            QueueApp.saveSettings()
+        });
+        this.reset()
+    },
+    reset: function(a) {
+        function b(a, b, c, d) {
+            a.drag(function(a, b) {
+                var c = this.ox + a,
+                    d = this.oy + b;
+                c < 0 || c > 560 || d < 0 || d > 360 || this.attr({
+                    x: this.ox + a,
+                    y: this.oy + b
+                })
+            }, function() {
+                this.ox = this.attr("x");
+                this.oy = this.attr("y")
+            }, function() {
+                var a = this.attr("x"),
+                    f = this.attr("y");
+                this.attr({
+                    x: b,
+                    y: c
+                });
+                a < 60 && f < 200 && (f = a = null);
+                d.call(QueueApp, a, f)
+            })
+        }
+        if (!a &&
+            this.views && this.views.length != 0) $("#verify_clear").dialog("open");
+        else {
+            if (this.models) {
+                a = this.models.length;
+                for (a -= 1; a >= 0; a--) this.models[a].unlink && this.models[a].unlink()
+            }
+            this.sim = null;
+            this.until = 28800;
+            this.seed = 1234;
+            this.showConn = !1;
+            this.sink_id = this.splitter_id = this.source_id = this.server_id = this.split3_id = 0;
+            this.canvas.clear();
+            this.posx = 100;
+            this.posy = 50;
+            this.views = [];
+            this.models = [];
+            this.form_view = null;
+            this.canvas.rect(0, 0, 600, 400).attr({
+                fill: "#FAF6AA",
+                "fill-opacity": ".6"
+            });
+            for (var c = [], a = 0; a <= 600; a += 50) c.push("M" +
+                a + " 0L" + a + " 400"), c.push("M0 " + a + "L600 " + a);
+            this.canvas.path(c.join("")).attr({
+                "stroke-width": 0.5,
+                stroke: "pink"
+            });
+            this.canvas.path("M0 0L0 400L600 400L600 0L0 0").attr({
+                "stroke-width": 4,
+                stroke: "pink"
+            });
+            for (a = 0; a < 4; a++) this.canvas.rect(10, 10 + 50 * a, 50, 50).attr({
+                fill: "#FAF6AA",
+                "fill-opacity": "50",
+                stroke: "F7D68A"
+            });
+            a = this.parseTime(this.until);
+            $("#config_sim").button("option", "label", a[0].toFixed(3) + " " + a[1]);
+            var a = this.canvas.image("images/server.png", 12, 25, 46.4, 22),
+                c = this.canvas.image("images/customers.png",
+                    15, 70, 34, 34),
+                d = this.canvas.image("images/splitter.png", 15, 115, 36.9, 43.2),
+                e = this.canvas.image("images/door_out.png", 18, 165, 32, 32),
+				f = this.canvas.image("images/split3.png", 21, 205, 36.9, 43.2);
+            a.attr({
+                title: "Drag and drop to create a new Queue"
+            });
+            c.attr({
+                title: "Drag and drop to create a new Source"
+            });
+            d.attr({
+                title: "Drag and drop to create a new Splitter"
+            });
+            e.attr({
+                title: "Drag and drop to create a new Sink"
+            });
+			f.attr({
+				title: "Drag and drop to create a new split3"
+			});
+            b(a, 12, 25, QueueApp.newServer);
+            b(c, 15, 70, QueueApp.newSource);
+            b(d, 15, 115, QueueApp.newSplitter);
+            b(e, 18, 165, QueueApp.newSink);
+			b(f, 15, 205, QueueApp.newSplit3);
+            $("#about_this_model").hide()
+        }
+    },
+    updateDrop: function() {
+        this.posx += 20;
+        this.posy += 20;
+        if (this.posy > 360) this.posy = 20, this.posx -= 200
+    },
+    newView: function(a, b, c, d, e, f, g, i) {
+        if (!g) g = this.posx, i = this.posy, this.updateDrop();
+        a = new a(this.canvas, c, d, g, i, e, f);
+        this.showConn && a.showDots(!0);
+        this.views.push(a);
+        b = new b(a);
+        a.model = b;
+        this.models.push(b);
+        return a
+    },
+    newServer: function(a, b) {
+        this.server_id++;
+        return this.newView(ImageView, ServerModel, "queue", "queue_" + this.server_id, !0, !0, a, b)
+    },
+    newSource: function(a, b) {
+        this.source_id++;
+        return this.newView(ImageView,
+            SourceModel, "source", "source_" + this.source_id, !1, !0, a, b)
+    },
+    newSink: function(a, b) {
+        this.sink_id++;
+        return this.newView(ImageView, SinkModel, "sink", "sink_" + this.sink_id, !0, !1, a, b)
+    },
+    newSplitter: function(a, b) {
+        this.splitter_id++;
+        return this.newView(SplitterView, SplitterModel, "splitter", "splitter_" + this.splitter_id, !0, !0, a, b)
+    },
+	newSplit3: function(a, b){
+		this.split3_id++;
+		return this.newView(Split3View, Split3Model, "split3", "split3_" + this.splitter_id, !0, !0, a, b);
+	},
+    toggleConnections: function() {
+        this.showConn = !this.showConn;
+        for (var a = this.views.length - 1; a >= 0; a--) this.views[a].showDots(this.showConn)
+    },
+    save: function() {
+        var a = this.stringify();
+        $("#save_dialog").dialog("open");
+        $("#save_textarea").text(a).focus().select()
+    },
+    load: function() {
+        $("#load_textarea").text("");
+        $("#load_dialog").dialog("open")
+    },
+    loadtext: function(a) {
+        try {
+            var b = JSON.parse(a)
+        } catch (c) {}
+        if (b.seed) this.seed = b.seed;
+        if (b.until) this.until = b.until;
+        a = this.parseTime(this.until);
+        $("#config_sim").button("option", "label", a[0].toFixed(3) + " " + a[1]);
+        for (var d = b.objects.length, a = {}, e = d - 1; e >= 0; e--) {
+            var f = b.objects[e],
+                g = null;
+            f.type === "queue" ? g = this.newServer() : f.type === "source" ? g = this.newSource() : f.type === "splitter" ? g =
+                this.newSplitter() : f.type === "sink" && (g = this.newSink());
+            if (f.model)
+                for (prop in f.model) g.model[prop] = f.model[prop];
+            g.moveto(f.x, f.y);
+            g.name = f.name;
+            a[f.name] = g
+        }
+        for (e = d - 1; e >= 0; e--)
+            if (f = b.objects[e], f.out && (d = a[f.name]))
+                if (f.out instanceof Array)
+                    for (g = f.out.length - 1; g >= 0; g--) {
+                        var i = a[f.out[g]];
+                        i && d.connect(i, g)
+                    } else(i = a[f.out]) && d.connect(i)
+    },
+    stringify: function() {
+        for (var a = {
+                until: this.until,
+                seed: this.seed,
+                version: "1.0",
+                objects: []
+            }, b = this.views.length - 1; b >= 0; b--) a.objects.push(this.views[b].jsonify());
+        return JSON.stringify(a)
+    },
+    parseTime: function() {
+        return this.until > 3600 ? [this.until / 3600, "hours"] : this.until > 60 ? [this.until / 60, "mins"] : [this.until, "secs"]
+    },
+    showSimProperties: function() {
+        var a = this.parseTime(),
+            b = $("#simulation_dialog");
+        b.find("#sim_seed").val(this.seed);
+        b.find("#sim_until").val(a[0]);
+        b.find("#time_selector").val(a[1]);
+        b.show().position({
+            of: $("#config_sim"),
+            at: "left bottom",
+            my: "left top"
+        })
+    },
+    saveSettings: function() {
+        var a = $("#simulation_dialog");
+        this.until = 1 * a.find("#sim_until").val();
+        this.seed =
+            1 * a.find("#sim_seed").val();
+        a = a.find("#time_selector").val();
+        a === "hours" ? this.until *= 3600 : a === "mins" && (this.until *= 60);
+        a = this.parseTime();
+        $("#config_sim").button("option", "label", a[0].toFixed(3) + " " + a[1])
+    },
+    startSim: function() {
+        var a, b;
+        this.sim = new Sim;
+        this.random = new Random(1234);
+        $("#progressbar").toggle();
+        $("#sim_play_ops").toggle();
+        $("#new_ops").toggle();
+        $("#file_ops").toggle();
+        $("#sim_ops").toggle();
+        $("#about_this_model").accordion("activate", !1);
+        a = this.models.length;
+        for (b = a - 1; b >= 0; b--) this.models[b].start();
+        for (b = a - 1; b >= 0; b--) this.models[b].connect();
+        this.playing = !0;
+        this.paused = !1;
+        this.startedAt = (new Date).getTime();
+        this.run()
+    },
+    IntervalLow: 40,
+    Interval: 50,
+    IntervalHigh: 60,
+    EventsPerInterval: 100,
+    IntervalPause: 0,
+    run: function() {
+        var a = QueueApp,
+            b = (new Date).getTime(),
+            c = a.sim.simulate(a.until, a.EventsPerInterval),
+            b = (new Date).getTime() - b;
+        if (b < a.IntervalLow || b > a.IntervalHigh) a.EventsPerInterval = Math.floor(a.EventsPerInterval / b * a.Interval);
+        a.progress.progressbar({
+            value: a.sim.time() * 100 / a.until
+        });
+        c ? QueueApp.complete() :
+            a.playing ? a.paused ? QueueApp.pauseSim() : setTimeout(a.run, a.IntervalPause) : QueueApp.complete()
+    },
+    complete: function() {
+        $("#progressbar").toggle();
+        $("#sim_play_ops").toggle();
+        $("#new_ops").toggle();
+        $("#file_ops").toggle();
+        $("#sim_ops").toggle();
+        for (var a = QueueApp.models.length - 1; a >= 0; a--) {
+            var b = QueueApp.models[a];
+            b.showStats && b.showStats()
+        }
+    },
+    pauseSim: function() {
+        for (var a = QueueApp.models.length - 1; a >= 0; a--) {
+            var b = QueueApp.models[a];
+            b.showStats && b.showStats()
+        }
+    }
+};
+Raphael.fn.connection = function(a, b, c, d) {
+    if (a.line && a.from && a.to) c = a, a = c.from, b = c.to;
+    var e = a.getBBox(),
+        f = b.getBBox(),
+        g = e.x + e.width + 1,
+        e = e.y + e.height / 2,
+        i = f.x - 1,
+        f = f.y + f.height / 2,
+        h = [3, 6];
+    dx = Math.max(Math.abs(g - i) / 2, 10);
+    dy = Math.max(Math.abs(e - f) / 2, 10);
+    var j = [g, g, g - dx, g + dx][h[0]].toFixed(3),
+        k = [e - dy, e + dy, e, e][h[0]].toFixed(3),
+        l = [0, 0, 0, 0, i, i, i - dx, i + dx][h[1]].toFixed(3),
+        h = [0, 0, 0, 0, e + dy, e - dy, f, f][h[1]].toFixed(3),
+        g = ["M", g.toFixed(3), e.toFixed(3), "C", j, k, l, h, i.toFixed(3), f.toFixed(3)].join(",");
+    if (c && c.line) c.bg &&
+        c.bg.attr({
+            path: g
+        }), c.line.attr({
+            path: g
+        });
+    else return c = typeof c == "string" ? c : "#000", {
+        bg: d && d.split && this.path(g).attr({
+            stroke: d.split("|")[0],
+            fill: "none",
+            "stroke-width": d.split("|")[1] || 3
+        }),
+        line: this.path(g).attr({
+            stroke: c,
+            fill: "none"
+        }),
+        from: a,
+        to: b
+    }
+};
+
+function ServerModel(a) {
+    this.view = a;
+    this.mu = this.nservers = 1;
+    this.maxqlen = -1;
+    this.dest = this.entity = null;
+    this.statTable = $("#server_stats").clone().attr("id", a.name);
+    this.statTable.find("h2").text(a.name);
+    $("#results").append(this.statTable);
+    this.stat = [this.statTable.find("#arrival"), this.statTable.find("#drop"), this.statTable.find("#sutil"), this.statTable.find("#qtime"), this.statTable.find("#stime"), this.statTable.find("#qsize"), this.statTable.find("#ssize"), this.statTable.find("#qtimed"), this.statTable.find("#stimed"),
+        this.statTable.find("#qsized"), this.statTable.find("#ssized")
+    ];
+    this.view.image.attr({
+        title: "Service rate = " + this.mu
+    })
+}
+ServerModel.prototype.jsonify = function() {
+    return {
+        nservers: this.nservers,
+        mu: this.mu,
+        maxqlen: this.maxqlen
+    }
+};
+ServerModel.prototype.start = function() {
+    this.entity = QueueApp.sim.addEntity(ServerEntity, this.nservers, this.mu, this.maxqlen)
+};
+ServerModel.prototype.connect = function() {
+    this.entity.dest = this.dest ? this.dest.entity : null
+};
+ServerModel.prototype.showSettings = function() {
+    var a = $("#server_form");
+    QueueApp.form_view = this.view;
+    a.find("#server_form_rate").val(this.mu);
+    a.find("#queue_length").val(this.maxqlen);
+    a.show().position({
+        of: $(this.view.image.node),
+        at: "center center",
+        my: "left top"
+    })
+};
+ServerModel.prototype.saveSettings = function() {
+    var a = $("#server_form");
+    this.mu = a.find("#server_form_rate").val();
+    this.maxqlen = a.find("#queue_length").val();
+    this.view.image.attr({
+        title: "Service rate = " + this.mu
+    })
+};
+ServerModel.prototype.showStats = function() {
+    var a = this.entity.facility,
+        b = a.queueStats().durationSeries,
+        c = a.queueStats().sizeSeries,
+        d = a.systemStats().durationSeries,
+        e = a.systemStats().sizeSeries,
+        a = a.usage() / QueueApp.sim.time() * 100;
+    this.stat[0].text(this.entity.arrived);
+    this.stat[1].text(this.entity.dropped);
+    this.stat[2].text(a.toFixed(1) + "%");
+    this.stat[3].text(b.average().toFixed(3));
+    this.stat[4].text(d.average().toFixed(3));
+    this.stat[5].text(c.average().toFixed(3));
+    this.stat[6].text(e.average().toFixed(3));
+    this.stat[7].text(b.deviation().toFixed(3));
+    this.stat[8].text(d.deviation().toFixed(3));
+    this.stat[9].text(c.deviation().toFixed(3));
+    this.stat[10].text(e.deviation().toFixed(3));
+    this.view.showCounters(b.count(), d.count())
+};
+ServerModel.prototype.unlink = function() {
+    this.statTable.remove();
+    this.stat = this.view = null
+};
+var ServerEntity = {
+    start: function(a, b, c) {
+        this.mu = b;
+        this.facility = new Sim.Facility("queue", Sim.Facility.FCFS, a, c);
+        this.arrived = this.dropped = 0
+    },
+    arrive: function(a) {
+        this.arrived++;
+        this.useFacility(this.facility, QueueApp.random.exponential(this.mu)).done(this.completed, this, a)
+    },
+    completed: function(a) {
+        this.callbackMessage === -1 ? this.dropped++ : this.dest && this.dest.arrive(a)
+    }
+};
+
+function SourceModel(a) {
+    this.view = a;
+    this.lambda = 0.25;
+    this.dest = null;
+    this.view.image.attr({
+        title: "Interarrival rate = " + this.lambda
+    })
+}
+SourceModel.prototype.jsonify = function() {
+    return {
+        lambda: this.lambda
+    }
+};
+SourceModel.prototype.start = function() {
+    this.entity = QueueApp.sim.addEntity(SourceEntity, this.lambda)
+};
+SourceModel.prototype.connect = function() {
+    this.entity.dest = this.dest ? this.dest.entity : null
+};
+SourceModel.prototype.showSettings = function() {
+    var a = $("#source_form");
+    QueueApp.form_view = this.view;
+    a.find("#source_form_rate").val(this.lambda);
+    a.show().position({
+        of: $(this.view.image.node),
+        at: "center center",
+        my: "left top"
+    })
+};
+SourceModel.prototype.saveSettings = function() {
+    this.lambda = $("#source_form").find("#source_form_rate").val();
+    this.view.image.attr({
+        title: "Interarrival rate = " + this.lambda
+    })
+};
+SourceModel.prototype.unlink = function() {
+    this.view = null
+};
+SourceModel.prototype.showStats = function() {
+    this.view.showCounters(NaN, this.entity.generated)
+};
+var SourceEntity = {
+    start: function(a) {
+        this.lambda = a;
+        this.setTimer(0).done(this.traffic);
+        this.generated = 0
+    },
+    traffic: function() {
+        this.dest && (this.dest.arrive(this.time()), this.generated++, this.setTimer(QueueApp.random.exponential(this.lambda)).done(this.traffic))
+    }
+};
+
+function SinkModel(a) {
+    this.view = a;
+    this.entity = null;
+    this.statTable = $("#sink_stats").clone().attr("id", a.name);
+    this.statTable.find("h2").text(a.name);
+    $("#results").append(this.statTable);
+    this.stat = [this.statTable.find("#depart"), this.statTable.find("#pop"), this.statTable.find("#popd"), this.statTable.find("#stay"), this.statTable.find("#stayd")]
+}
+SinkModel.prototype.jsonify = function() {
+    return null
+};
+SinkModel.prototype.start = function() {
+    this.entity = QueueApp.sim.addEntity(SinkEntity)
+};
+SinkModel.prototype.connect = function() {};
+SinkModel.prototype.showSettings = function() {
+    var a = $("#sink_form");
+    QueueApp.form_view = this.view;
+    a.show().position({
+        of: $(this.view.image.node),
+        at: "center center",
+        my: "left top"
+    })
+};
+SinkModel.prototype.saveSettings = function() {};
+SinkModel.prototype.showStats = function() {
+    var a = this.entity.population;
+    this.stat[0].text(a.durationSeries.count());
+    this.stat[1].text(a.sizeSeries.average().toFixed(3));
+    this.stat[2].text(a.sizeSeries.deviation().toFixed(3));
+    this.stat[3].text(a.durationSeries.average().toFixed(3));
+    this.stat[4].text(a.durationSeries.deviation().toFixed(3));
+    this.view.showCounters(a.durationSeries.count(), NaN)
+};
+SinkModel.prototype.unlink = function() {
+    this.statTable.remove();
+    this.stat = this.view = null
+};
+var SinkEntity = {
+    start: function() {
+        this.population = new Sim.Population
+    },
+    arrive: function(a) {
+        a || (a = 0);
+        this.population.enter(a);
+        this.population.leave(a, this.time())
+    }
+};
+
+function SplitterModel(a) {
+    this.view = a;
+    this.prob = 0.5;
+    this.dest = [null, null];
+    var b = ["Splitting", this.prob * 100, "% / ", 100 - this.prob * 100, "%"].join(" ");
+    a.image.attr({
+        title: b
+    })
+}
+SplitterModel.prototype.jsonify = function() {
+    return {
+        prob: this.prob
+    }
+};
+SplitterModel.prototype.start = function() {
+    this.entity = QueueApp.sim.addEntity(SplitterEntity, this.prob)
+};
+SplitterModel.prototype.connect = function() {
+    this.entity.dest1 = this.dest[0] ? this.dest[0].entity : null;
+    this.entity.dest2 = this.dest[1] ? this.dest[1].entity : null
+};
+SplitterModel.prototype.showSettings = function() {
+    var a = $("#splitter_form");
+    QueueApp.form_view = this.view;
+    a.find("#splitter_form_perc").val(this.prob);
+    a.show().position({
+        of: $(this.view.image.node),
+        at: "center center",
+        my: "left top"
+    })
+};
+SplitterModel.prototype.saveSettings = function() {
+    this.prob = $("#splitter_form").find("#splitter_form_perc").val();
+    this.view.image.attr({
+        title: ["Splitting", this.prob * 100, "% / ", 100 - this.prob * 100, "%"].join(" ")
+    })
+};
+SplitterModel.prototype.unlink = function() {
+    this.view = null
+};
+SplitterModel.prototype.showStats = function() {};
+var SplitterEntity = {
+        start: function(a) {
+            this.prob = a;
+            this.to2 = this.to1 = this.arrived = 0
+        },
+        arrive: function(a) {
+            this.arrived++;
+            QueueApp.random.uniform(0, 1) < this.prob ? (this.to1++, this.dest1 && this.dest1.arrive(a)) : (this.to2++, this.dest2 && this.dest2.arrive(a))
+        }
+    },
+    SplitterView = function(a, b, c, d, e) {
+        this.canvas = a;
+        this.type = b;
+        this.name = c;
+        this.hidden = [a.rect(d, e, 10, 10), a.rect(d, e, 10, 10)];
+        this.width = 28.7;
+        this.height = 48 * 0.7;
+        this.image = a.image("images/splitter.png", d, e, this.width, this.height);
+        this.x = d;
+        this.y = e;
+        this.hidden[0].attr({
+            "stroke-width": "0"
+        });
+        this.hidden[1].attr({
+            "stroke-width": "0"
+        });
+        this.image.attr({
+            cursor: "move"
+        });
+        this.image.view = this;
+        this.image.animate({
+            scale: "1.2 1.2"
+        }, 200, function() {
+            this.animate({
+                scale: "1 1"
+            }, 200)
+        });
+        this.arrows = [null, null];
+        this.counters = a.text(d, e, "");
+        for (b = 0; b < 2; b++) c = a.image("images/orange-arrow.gif", d, e, 12, 12), c.view = this, c.id = b, c.drag(function(a, b) {
+            this.attr({
+                x: this.ox + a,
+                y: this.oy + b
+            });
+            this.paper.connection(this.conn)
+        }, function() {
+            this.conn = this.paper.connection(this.view.hidden[this.id], this, "#000");
+            this.ox = this.attr("x");
+            this.oy = this.attr("y")
+        }, function() {
+            this.conn.line.remove();
+            this.conn = null;
+            var a = QueueApp.views,
+                b = a.length,
+                c = this.attr("x"),
+                d = this.attr("y");
+            for (b -= 1; b >= 0; b--) {
+                var e = a[b];
+                if (e.acceptDrop(c, d)) {
+                    this.hide();
+                    this.view.connect(e, this.id);
+                    return
+                }
+            }
+            a = this.view;
+            this.id === 0 ? this.attr({
+                x: a.x + a.width + 2,
+                y: a.y + 5
+            }) : this.attr({
+                x: a.x + a.width + 2,
+                y: a.y + a.height - 15
+            })
+        }), this.arrows[b] = c;
+        this.moveto(d, e);
+        this.image.drag(function(a, b) {
+                var c = this.view;
+                c.moveto(c.ox + a, c.oy + b)
+            }, function() {
+                var a = this.view;
+                a.ox = a.x;
+                a.oy = a.y
+            },
+            function() {});
+        this.image.dblclick(function() {
+            this.view.model.showSettings()
+        })
+    };
+SplitterView.prototype.moveto = function(a, b) {
+    var c;
+    if (!(a > 600 - this.width || b > 400 - this.height || a < 0 || b < 0)) {
+        this.x = a;
+        this.y = b;
+        this.image.attr({
+            x: a,
+            y: b
+        });
+        this.hidden[0].attr({
+            x: this.x + this.width - 20,
+            y: this.y + 5
+        });
+        this.hidden[1].attr({
+            x: this.x + this.width - 20,
+            y: this.y + this.height - 15
+        });
+        this.arrows[0].attr({
+            x: this.x + this.width + 2,
+            y: this.y + 5
+        });
+        this.arrows[1].attr({
+            x: this.x + this.width + 2,
+            y: this.y + this.height - 15
+        });
+        this.counters.attr({
+            x: this.x + this.width / 2,
+            y: this.y + this.height + 5
+        });
+        for (c = QueueApp.views.length - 1; c >= 0; c--) QueueApp.views[c].moveConnection(this);
+        this.arrows[0].conn && this.canvas.connection(this.arrows[0].conn);
+        this.arrows[1].conn && this.canvas.connection(this.arrows[1].conn)
+    }
+};
+SplitterView.prototype.connect = function(a, b) {
+    var c = this.canvas.connection(this.hidden[b], a.dropObject(), "#000");
+    c.line.attr({
+        "stroke-width": 3,
+        stroke: "#F7D68A"
+    });
+    c.fromView = this;
+    c.toView = a;
+    this.arrows[b].conn = c;
+    this.arrows[b].hide();
+    this.model.dest[b] = a.model
+};
+SplitterView.prototype.unlink = function() {
+    var a, b;
+    a = QueueApp.models.length;
+    for (a -= 1; a >= 0; a--)
+        if (QueueApp.models[a] === this.model) {
+            b = a;
+            break
+        }
+    b && QueueApp.models.splice(b, 1);
+    this.model && this.model.unlink();
+    this.disconnect();
+    a = QueueApp.views.length;
+    for (a -= 1; a >= 0; a--) QueueApp.views[a].disconnect(this), QueueApp.views[a] === this && (b = a);
+    QueueApp.views.splice(b, 1);
+    this.image.remove();
+    this.arrows[0].remove();
+    this.arrows[1].remove();
+    this.hidden[0].remove();
+    this.hidden[0].remove();
+    this.counters.remove()
+};
+SplitterView.prototype.disconnect = function(a) {
+    for (var b = 0; b < 2; b++) {
+        var c = this.arrows[b];
+        if (c && c.conn && (!a || c.conn.toView === a)) c.conn.line.remove(), c.conn = null, b === 0 ? c.attr({
+            x: this.x + this.width + 2,
+            y: this.y + 5
+        }) : c.attr({
+            x: this.x + this.width + 2,
+            y: this.y + this.height - 15
+        }), c.show()
+    }
+};
+SplitterView.prototype.dropObject = function() {
+    return this.image
+};
+SplitterView.prototype.acceptDrop = function(a, b) {
+    return a > this.x - 10 && a < this.x + this.width + 10 && b > this.y - 10 && b < this.y + this.height + 10
+};
+SplitterView.prototype.moveConnection = function(a) {
+    for (var b = 0; b < 2; b++) {
+        var c = this.arrows[b];
+        c && c.conn && c.conn.toView === a && this.canvas.connection(c.conn)
+    }
+};
+SplitterView.prototype.jsonify = function() {
+    for (var a = {
+            x: this.x,
+            y: this.y,
+            type: this.type,
+            name: this.name,
+            out: [null, null]
+        }, b = 0; b < 2; b++) {
+        var c = this.arrows[b];
+        if (c.conn) a.out[b] = c.conn.toView.name
+    }
+    if (this.model) a.model = this.model.jsonify();
+    return a
+};
+var MODELS = {
+    model_mm1: {
+        model: '{"until":14400,"seed":1234,"version":"1.0","objects":[{"x":102,"y":136,"type":"source","name":"source_1","out":"queue_1","model":{"lambda":0.25}},{"x":252,"y":93,"type":"queue","name":"queue_1","model":{"nservers":1,"mu":"1","maxqlen":"-1"}}]}'    },
+    model_mm1feedback: {
+        model: '{"until":14400,"seed":1234,"version":"1.0","objects":[{"x":399,"y":171,"type":"sink","name":"sink_1","model":null},{"x":257,"y":186,"type":"splitter","name":"splitter_1","out":["queue_1","sink_1"],"model":{"prob":"0.1"}},{"x":102,"y":136,"type":"source","name":"source_1","out":"queue_1","model":{"lambda":0.25}},{"x":210,"y":83,"type":"queue","name":"queue_1","out":"splitter_1","model":{"nservers":1,"mu":"1","maxqlen":"-1"}}]}'
+    },
+    model_backforth: {
+        model: '{"until":28800,"seed":1234,"version":"1.0","objects":[{"x":496,"y":128,"type":"sink","name":"sink_1","model":null},{"x":241,"y":187,"type":"queue","name":"queue_2","out":"splitter_2","model":{"nservers":1,"mu":"1","maxqlen":"-1"}},{"x":379,"y":193,"type":"splitter","name":"splitter_2","out":["queue_1","sink_1"],"model":{"prob":0.5}},{"x":377,"y":93,"type":"splitter","name":"splitter_1","out":["sink_1","queue_2"],"model":{"prob":0.5}},{"x":228,"y":87,"type":"queue","name":"queue_1","out":"splitter_1","model":{"nservers":1,"mu":"1","maxqlen":"-1"}},{"x":91,"y":84,"type":"source","name":"source_1","out":"queue_1","model":{"lambda":0.25}}]}'
+    },
+    model_waterfall: {
+        model: '{"until":14400,"seed":1234,"version":"1.0","objects":[{"x":82,"y":29,"type":"source","name":"source_1","out":"queue_1","model":{"lambda":0.25}},{"x":558,"y":341,"type":"sink","name":"sink_1","model":null},{"x":440,"y":281,"type":"queue","name":"queue_4","out":"sink_1","model":{"nservers":1,"mu":"1","maxqlen":"-1"}},{"x":342,"y":211,"type":"queue","name":"queue_3","out":"queue_4","model":{"nservers":1,"mu":"1","maxqlen":"-1"}},{"x":241,"y":144,"type":"queue","name":"queue_2","out":"queue_3","model":{"nservers":1,"mu":"1","maxqlen":"-1"}},{"x":140,"y":76,"type":"queue","name":"queue_1","out":"queue_2","model":{"nservers":1,"mu":"1","maxqlen":"-1"}}]}'
+    },
+    model_compile: {
+        model: '{"until":28800,"seed":1234,"version":"1.0","objects":[{"x":526,"y":246,"type":"sink","name":"sink_1","model":null},{"x":272,"y":192,"type":"splitter","name":"splitter_3","out":["queue_1","queue_2"],"model":{"prob":0.5}},{"x":107,"y":36,"type":"source","name":"source_1","out":"queue_1","model":{"lambda":0.25}},{"x":456,"y":171,"type":"splitter","name":"splitter_2","out":["queue_1","sink_1"],"model":{"prob":0.5}},{"x":336,"y":187,"type":"queue","name":"queue_2","out":"splitter_2","model":{"nservers":1,"mu":"1","maxqlen":"-1"}},{"x":212,"y":63,"type":"queue","name":"queue_1","out":"splitter_3","model":{"nservers":1,"mu":"1","maxqlen":"-1"}}]}'
+    },
+    model_freeway: {
+        model: '{"until":28800,"seed":1234,"version":"1.0","objects":[{"x":380,"y":2,"type":"source","name":"source_4","out":"queue_4","model":{"lambda":0.25}},{"x":255,"y":80,"type":"source","name":"source_3","out":"queue_3","model":{"lambda":0.25}},{"x":115,"y":181,"type":"source","name":"source_2","out":"queue_2","model":{"lambda":0.25}},{"x":8,"y":229,"type":"source","name":"source_1","out":"queue_1","model":{"lambda":0.25}},{"x":561,"y":105,"type":"sink","name":"sink_4","model":null},{"x":510,"y":198,"type":"sink","name":"sink_3","model":null},{"x":374,"y":287,"type":"sink","name":"sink_2","model":null},{"x":204,"y":336,"type":"sink","name":"sink_1","model":null},{"x":139,"y":287,"type":"splitter","name":"splitter_3","out":["queue_2","sink_1"],"model":{"prob":0.5}},{"x":299,"y":213,"type":"splitter","name":"splitter_2","out":["queue_3","sink_2"],"model":{"prob":0.5}},{"x":430,"y":137,"type":"splitter","name":"splitter_1","out":["queue_4","sink_3"],"model":{"prob":0.5}},{"x":463,"y":43,"type":"queue","name":"queue_4","out":"sink_4","model":{"nservers":1,"mu":"1","maxqlen":"-1"}},{"x":327,"y":132,"type":"queue","name":"queue_3","out":"splitter_1","model":{"nservers":1,"mu":"1","maxqlen":"-1"}},{"x":194,"y":207,"type":"queue","name":"queue_2","out":"splitter_2","model":{"nservers":1,"mu":"1","maxqlen":"-1"}},{"x":31,"y":281,"type":"queue","name":"queue_1","out":"splitter_3","model":{"nservers":1,"mu":"1","maxqlen":"-1"}}]}'
+    },
+    model_staytillend: {
+        model: '{"until":28800,"seed":1234,"version":"1.0","objects":[{"x":554,"y":349,"type":"sink","name":"sink_5","model":null},{"x":515,"y":287,"type":"splitter","name":"splitter_4","out":["sink_4","sink_5"],"model":{"prob":0.5}},{"x":420,"y":216,"type":"splitter","name":"splitter_3","out":["sink_3","queue_4"],"model":{"prob":0.5}},{"x":319,"y":144,"type":"splitter","name":"splitter_2","out":["sink_2","queue_3"],"model":{"prob":0.5}},{"x":212,"y":83,"type":"splitter","name":"splitter_1","out":["sink_1","queue_2"],"model":{"prob":0.5}},{"x":561,"y":242,"type":"sink","name":"sink_4","model":null},{"x":457,"y":164,"type":"sink","name":"sink_3","model":null},{"x":362,"y":94,"type":"sink","name":"sink_2","model":null},{"x":65,"y":27,"type":"source","name":"source_1","out":"queue_1","model":{"lambda":0.25}},{"x":258,"y":28,"type":"sink","name":"sink_1","model":null},{"x":414,"y":281,"type":"queue","name":"queue_4","out":"splitter_4","model":{"nservers":1,"mu":"1","maxqlen":"-1"}},{"x":316,"y":211,"type":"queue","name":"queue_3","out":"splitter_3","model":{"nservers":1,"mu":"1","maxqlen":"-1"}},{"x":222,"y":139,"type":"queue","name":"queue_2","out":"splitter_2","model":{"nservers":1,"mu":"1","maxqlen":"-1"}},{"x":112,"y":76,"type":"queue","name":"queue_1","out":"splitter_1","model":{"nservers":1,"mu":"1","maxqlen":"-1"}}]}'
+    },
+    model_winner: {
+        model: '{"until":28800,"seed":1234,"version":"1.0","objects":[{"x":350,"y":293,"type":"source","name":"source_2","out":"queue_3","model":{"lambda":0.25}},{"x":57,"y":288,"type":"source","name":"source_1","out":"queue_2","model":{"lambda":0.25}},{"x":539,"y":250,"type":"sink","name":"sink_3","model":null},{"x":294,"y":239,"type":"sink","name":"sink_2","model":null},{"x":371,"y":24,"type":"sink","name":"sink_1","model":null},{"x":225,"y":203,"type":"splitter","name":"splitter_3","out":["queue_1","sink_2"],"model":{"prob":0.5}},{"x":480,"y":211,"type":"splitter","name":"splitter_2","out":["queue_1","sink_3"],"model":{"prob":0.5}},{"x":380,"y":205,"type":"queue","name":"queue_3","out":"splitter_2","model":{"nservers":1,"mu":"1","maxqlen":"-1"}},{"x":109,"y":198,"type":"queue","name":"queue_2","out":"splitter_3","model":{"nservers":1,"mu":"1","maxqlen":"-1"}},{"x":256,"y":85,"type":"queue","name":"queue_1","out":"sink_1","model":{"nservers":1,"mu":"1","maxqlen":"-1"}}]}'
+    }
+};

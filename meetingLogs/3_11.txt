@@ -1,0 +1,33 @@
+March 11, 2015
+Bluesim meeting
+
+Administrative Things:
+	everyone can meet at this time on Wednesdays
+	we will add more meetings as needed
+	everyone is on slack (so that's good)
+	Spring Break is coming up
+		we will not meet over spring break but everyone will have some presence on slack
+	no one has much opinion on how to operate on svn repo
+		just work directly with trunk until we get problems
+
+Plan to meet Purtilo tomorrow at 9:30 to discuss more about the project
+	needs more clarification before we can make a definite design
+	we will meet him before class and schedule more meetings later in the day as needed
+
+Examples we think we should be able to model (for validation and presenting)
+	predator-prey
+	game of life
+
+Questions for Purtilo when we meet tomorrow:
+	what are the inputs to the simulation?
+	who is the audience?
+	how should the user interface with the software?
+	deliverables?
+	(we will think of more outside of the meeting)
+	going to setup a google doc for everyone to contribute to 
+
+Deadlines
+	dependent on Purtilo's answers after tomorrows meetings
+	hard deadline: finalize design by the end of March
+	hard deadline: finish proposal first week of April
+	soft deadline: finish code a week in advance to allow for testing/debugging

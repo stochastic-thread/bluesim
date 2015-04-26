@@ -1,0 +1,10 @@
+April 5
+
+	To change the size of the canvas space need to change parameters in:
+		- reset function in queueing-min.js
+		- ImageView.prototype.moveto function in image-view.js
+		- Split3View.prototype.moveto in split3.js
+		- SplitterView.prototype.moveto in splitter.js
+	(Recommend using a global variable in next edit)
+
+	Added the functionality of a simulation bar that was missing before

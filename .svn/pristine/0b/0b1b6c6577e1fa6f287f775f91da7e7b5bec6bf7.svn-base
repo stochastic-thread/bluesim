@@ -1,0 +1,127 @@
+
+function setUDO() {
+
+    var b = $("#udo_form");
+    b.show().position({
+        of: $("#udo_image"),
+        at: "left bottom",
+        my: "right top"
+    });
+}
+
+
+var numUserAttributes = 0;
+
+// this fucntion chnages the global udo_use boolean when radio button in changed. 
+function checkRadioButtonsForUdo() {
+
+    if(document.getElementById("use_radio_button").checked){
+        USE_UDO = true;
+        document.getElementById("udo_toggle_label").innerHTML = "UDO";
+     }else if(document.getElementById("disable_radio_button").checked){
+        USE_UDO = false;
+        document.getElementById("udo_toggle_label").innerHTML = "Function";
+     }
+
+}
+
+
+function GetDynamicTextBox(){
+   numUserAttributes++;
+
+   var parentTable = document.getElementById("udo_dailogue_table");
+
+   var tableRow = document.createElement('tr');
+   tableRow.id = "tableRow_"+ numUserAttributes;
+
+   tableRow.innerHTML = 
+                       '<td> <input id="udo_text_box_'+ numUserAttributes+'" type="text" class="text ui-widget-content ui-corner-all"/>' +
+                           '</td>' +
+                       '<td> <select name="source_dropdown" class = " ui-widget-content ui-corner-all" id="udo_dropdown_'+ numUserAttributes + '">' +
+                               '<option  value="INT">INT</option>' +
+                               '<option  value="FLOAT">FLOAT</option>' +
+                               '<option  value="BOOLEAN">BOOLEAN</option>' +
+                               '</select>' +
+                           '</td>' +
+                       '<td> <input type="button" value="x" class="" onclick = "RemoveTextBox('+ numUserAttributes+')" />' +
+                           '</td>';
+
+   parentTable.appendChild(tableRow);
+}
+
+function disableDis(value) {
+    document.getElementById("use_"+value).disabled = true;
+    document.getElementById("dis_"+value).disabled = false;
+}
+
+function disableUse(value) {
+    document.getElementById("use_"+value).disabled = false;
+    document.getElementById("dis_"+value).disabled = true;
+}
+
+function RemoveTextBox(id) { // name conflict error
+   numUserAttributes--;
+   var child = document.getElementById("tableRow_" + id)
+   child.parentNode.removeChild(child);
+}
+
+function RecreateDynamicTextboxes() {
+    var values = eval('<%=Values%>');
+    if (values != null) {
+        var html = "";
+        for (var i = 0; i < values.length; i++) {
+            html += "<div id=udo_div" +  i  + ">" + GetDynamicTextBox(values[i]) + "</div>";
+        }
+        document.getElementById("TextBoxContainer").innerHTML = html;
+    }
+}
+window.onload = RecreateDynamicTextboxes;
+
+function saveUDOParams() {
+
+    // Use LIST_OF_PARAMETERS
+    LIST_OF_PARAMETERS = [numUserAttributes+1];
+
+    var udoFormParent = document.getElementById("TextBoxContainer").children.length;
+
+    for (var i = 0; i <= numUserAttributes; i++) {
+        var value = document.getElementById("udo_text_box_" + i).value;
+        if (value == null)
+            continue;
+        var type = document.getElementById("udo_dropdown_" + i);
+        type = type.options[type.selectedIndex].value;
+        // save values
+        LIST_OF_PARAMETERS[i] = [value, type];
+    }
+
+    //This method is clearing dialogues and set them to defualt for entities when UDO's are removed   
+    if(UPDATE_FORM != null || UPDATE_SPLIT_FORM != null){
+
+        if(QueueApp.models.length != 0){
+            for(var i = 0; i < QueueApp.models.length; i++){
+                QueueApp.models[i]._params = null;
+                QueueApp.models[i].clearAndUpdateForm();
+            }
+        }
+
+    }
+
+    $("#udo_form").hide();
+}
+
+//function popForm(){
+
+  //   var parentForm = document.getElementById("udo_form_to_append");
+    // var div = document.createElement('div');
+     //div.innerHTML = GetDynamicTextBox("");
+//}	
+
+//setUDO.prototype.showSettings = function() {
+  //  var a = $("#udo_form");
+    //QueueApp.form_view = this.view;
+    //a.show().position({
+      //  of: $(this.view.image.node),
+        //at: "center center",
+        //my: "left top"
+    //})
+//};

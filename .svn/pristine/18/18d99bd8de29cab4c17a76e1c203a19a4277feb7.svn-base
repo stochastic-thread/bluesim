@@ -1,0 +1,53 @@
+show_stat_manager(){
+	
+	Queue total
+	Sink total
+	thermometer total
+	for loop throouhg models[]{
+		add stats to respective model totals
+	}
+
+	for loop through models[]{
+		check the above types 
+			check this.stats/total to determine color
+			assign entitity that color and swap out image reference
+
+		special case FuncSplitter
+			deterine color based on traffic flow between the two arrows //this.dest1 is top , this.dest2 is bottom
+				ie top flow .6, bottom flow.4 and assign numbers for each path taken
+				splitfunc itself doesn't actually get any colors.
+	}
+
+	call pathAnimator()
+
+}
+
+pathAnimator(){
+	
+	idea behind this implementation: choose colors for path based on the from field
+
+	check the paths from the SVG
+
+	for each path there is a "from" and "to" field designated
+
+	assign values for path based on the color that is set in the from.
+
+	Special case: reverser in the "to" field  
+		assign color value in the reverser to the be whatever is in the from field
+		so that when we read the next entity path connected to this we can decide
+		what color the path should be
+
+	Special case: splitFunct in "from" field
+		read the "to" field and check to see if that is splitfunc.dest1 (top) or bottom.
+		if its at the top then we use the color assigned
+
+
+}
+
+splitfunction()
+	this.dest1
+	this.dest2
+
+	topload
+	bottomload
+	using ^ to determine colors for each of the entities 

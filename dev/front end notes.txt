@@ -1,0 +1,104 @@
+				April 5
+
+	To change the size of the canvas space need to change parameters in:
+		- reset function in queueing-min.js
+		- ImageView.prototype.moveto function in image-view.js
+		- Split3View.prototype.moveto in split3.js
+		- SplitterView.prototype.moveto in splitter.js
+	(Recommend using a global variable in next edit)
+
+	Added the functionality of a simulation bar that was missing before
+
+
+April 20
+
+	Functions and variables explained from Source.js
+
+SOURCE
+	this.updateForm = null; // 
+
+	createForm() - calls populateForm() "if (this.updateForm == null).  it then sets updateForm to value
+		to prevent it from being called everytime a function the source model showSettings() is called.
+
+	populateForm() creates a new form based on specs from UDO.  If UDO is not being
+		used then we need to have a default form that is created instead (still needs to be hashed out)
+	TODO - should check "if (LIST_OF_PARAMETERS != 0) to create the form correctly, currently set up with wrong
+		condition for testing purposes
+
+	clearAndUpdateForm() - gets the div for source_form_to_add and clears the innerHTML.  it then calls populateForm()
+		
+
+The preceding functions are primitve as they do not attempt to repopulate the parameters with user input if stored.  
+
+HOW TO HANDLE CASE: using UDO vs. Ping
+
+SOlution:
+	the div for source_form has been gutted to not include any input form data.  One approach to this might be to have 
+	one distribution, paramaters table already staticly typed under the parent node "source_form_to_add" that will follow
+	naming convetion for new divs used in populateForm() ie source_table_0, source_dropdown_0.  
+
+Problem: 
+	if UDO created with one field we still need to discriminate between using an UDO or ping...... 
+
+Solution2: 
+	Global value that can be set by user in UDO? for example, in the UDO pop-up box could we have a radio button saying 				to "use" or "not use" udo that will turn the flag on/off?
+
+
+Udo_manager.js
+	
+	TODO
+		- need to have a way to save and show state like the functions that exist for other entities. May make sense
+		to think of UDO as a single existence entitity, implementing it like the other entitity models with most of the 
+		code ripped from there...
+
+SIMPLE ANIMATION IDEA
+
+	using D3 and preloaded images of entities (each with different colors to represent usage perhaps) can swap images
+	to make the transitions more seamless can do the following in order.  change opactity to 0 then change href to desired
+	image and then change opacity back to 100 with a an animation using duration().
+
+
+APRIL 22
+
+TODO: 
+
+	DONE - Source form should have the the first dropdown function dedicated to spawn production of UDOs
+	DONE - Include better text fields for user interation ie enter distribution for UDO creation, enter distribtion for GPA
+	DONE - Add the other distribution functions from global.js ie random, etc....
+	DONE - Create an apply field for UDO form to save user data
+	- OPTIONAL: create a name field for UDO..
+	- Allow users to create names for entities..(not just queue_1)
+	DONE - Create boolean flag for UDO to be used or not...
+	DONE - Complete writing Source to include functionality for Ping use vs. UDO usage
+	- STARTED fields in sink table to reflect simulation data from UDOs to include name, total, max, min.  Add findings to object 	  	  variable this.stats so that data is pulled from the table for the overall stats ask TIM more about this.
+ 	DONE- ENTITY needs a pull down menu like the ones implemented in source
+	DONE- ENTITY splitter to have two dropdowns: first for an UDO field to evaluate, second for ">,<,==,!=, <=, >="
+	- ENTITY functionBLock (yet to be represented graphically on UI) to have two dropdowns: first for UDO field, second 	forincrement, decrement, multiply, divide, invert (!, not)
+	DONE - ask Nic about pullFromModel() pushToForm() being used in SourceModel saveSettings() and showSettings() concerned about it 		  being in new condition for using UDO and how it should behave if using Ping instead
+	DONE - udo_manager = updateAndClear() needs to be called by all entities, currently only calling one
+	DONE- USE_UDO global variable needs to be set to true or false by checking the radio button.  radio button should be preset to 	  disable use of Udo
+	DONE - remove buttons "use" and "disable" from UDO form
+	DONE- Queueing-min.js splitter function, and function block can only be instantiated if USE_UDO == true
+
+BUGS 	
+	FIXED	- create UDO with one form entry
+	  	add two sources to the simulation
+		double click on one of them and it popuates the form twice..
+	FIXED	- create source and keep window open, create UDO enable and apply and then Source form doesn't update..
+
+
+April 25
+	func block can be named when use_udo is false but func block cannot be named when use_udo is true
+	thermometer does not have a disconnect button
+	reverser does not have a disconnect button
+	when you load simulations from json, the names are not preserved in the json, the defaults ones are chosen instead
+	when you toggle use_udo on and off with the func_splitter form open, it does not update correctly
+	func blocks form does not change if you toggle use_udo
+	the alert box for when you toggle use_udo only hits for func_splitter when in fact we should alert about the func block as well
+	in source, when you try to set the second parameters for gaussian the box does not appear
+
+	if you leave a dialog button and you click on one of the sample generators (bank teller, real numbers,...) the dialog box can't be closed since the entity was deleted, taking with it its id
+	Split function - causing an error if simulation run with UDO and not connected to anything at this line
+		if(USE_UDO)
+			this.funcString = funct.replace('/@/g', 'message.fields.');
+		else

@@ -1,0 +1,669 @@
+<html itemscope="" itemtype="http://schema.org/Product">
+<head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    
+    <meta itemprop="name" content="BlueSim :: Simulation Builder">
+
+    <title>BLUESIM</title>
+
+    <link href="images/favicon.ico" rel="icon" type="image/x-icon" />
+
+    <script src="lib/d3v3.js" type="text/javascript" charset="utf-8"></script>
+    <script src="lib/raphael-min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="sim-0.26.js" type="text/javascript" charset="utf-8"></script>
+    <script src="global.js" type="text/javascript" charset="utf-8"></script>
+    <script src="image-view.js" type="text/javascript" charset="utf-8"></script>
+    <script src="animations/stat_animation_manager.js" type="text/javascript" charset="utf-8"></script>
+    <script src="animations/path_animator.js" type="text/javascript" charset="utf-8"></script>
+
+    <script src="entities/data.js" type="text/javascript" charset="utf-8"></script>
+    <script src="entities/sink.js" type="text/javascript" charset="utf-8"></script>
+    <script src="entities/source.js" type="text/javascript" charset="utf-8"></script>
+    <script src="entities/server.js" type="text/javascript" charset="utf-8"></script>
+    <script src="entities/reverser.js" type="text/javascript" charset="utf-8"></script>
+    <script src="entities/splitfunction.js" type="text/javascript" charset="utf-8"></script>
+    <script src="entities/thermo.js" type="text/javascript" charset="utf-8"></script>   
+    <script src="entities/func.js" type="text/javascript" charset="utf-8"></script>
+    <script src="graph/simresults.js" type="text/javascript" charset="utf-8"></script>
+    <script src="udo-manager.js" type="text/javascript" charset="utf-8"></script>
+    
+    <script src="gm.js" type="text/javascript" charset="utf-8"></script>
+    <script src="ui_helper.js" type="text/javascript" charset="utf-8"></script>
+    <link rel="stylesheet" href="css/toolbar.css" type="text/css" media="screen" title="no title" charset="utf-8">
+    <link rel="stylesheet" href="css/canvas_parent.css" type="text/css" media="screen" title="no title" charset="utf-8">
+    <link rel="stylesheet" href="css/on_off_switch.css" type="text/css" media="screen" title="no title" charset="utf-8">
+    <link rel="stylesheet" href="css/queuing.css" type="text/css" media="screen" title="no title" charset="utf-8">
+    <link rel="stylesheet" href="css/jquery-ui-1.8.16.custom.css" type="text/css" media="screen" title="no title" charset="utf-8">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/zeroclipboard/2.2.0/ZeroClipboard.js" type="text/javascript" charset="utf-8"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/zeroclipboard/2.2.0/ZeroClipboard.Core.js" type="text/javascript" charset="utf-8"></script>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js "type="text/javascript" harset="utf-8"></script> 
+
+    <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.js" type="text/javascript" charset="utf-8"></script>
+    <script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js" type="text/javascript"></script>
+
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/4.4.0/bootbox.min.js"></script>
+
+
+    
+    <script src="initialize.js" type="text/javascript" charset="utf-8"></script>
+    <script src="models.js" type="text/javascript" charset="utf-8"></script>
+    <script src="queuing-min.js" type="text/javascript" charset="utf-8"></script>
+
+</head>
+
+<body>
+  <div class="panel panel-default" id = "outer-div">
+    <div class="panel-heading" id="bigheader"> 
+      <img src="images/BLUESIM_FINAL2.png" style="height:3%">
+    </div>
+    
+    <div class="panel-body">
+
+      <div id="content">
+
+        <div id="main_layout">
+
+        <div id="progressbar" class="ui-progressbar ui-widget ui-widget-content ui-corner-all" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="display: none;">
+          <div class="ui-progressbar-value ui-widget-header ui-corner-left" style="display: none; width: 0%;"></div>
+        </div> 
+
+        <span id="sim_play_ops" style="display: none;">
+          <button id="pause_sim" type="button" class="btn btn-default btn-md">
+              <span class="glyphicon glyphicon-pause" aria-hidden="true"></span> Pause
+          </button>
+
+          <button id="stop_sim" type="button" class="btn btn-default btn-md">
+              <span class="glyphicon glyphicon-stop" aria-hidden="true"></span> Stop
+          </button>
+        </span>
+
+        <span class="btn-toolbar" role="toolbar" aria-label="toolbarz">
+            <span id="file_ops">
+                <button id="clear_screen" type="button" class="btn btn-default btn-md">
+                    <span class="glyphicon glyphicon-file" aria-hidden="true"></span> Clear
+                </button>
+
+                <div id="import_file" type="button" class="btn btn-default btn-md">
+                    <span class="glyphicon glyphicon-import" aria-hidden="true"></span> Import
+                </div>
+
+                <div id="export_file" type="button" class="btn btn-default btn-md">
+                    <span class="glyphicon glyphicon-export" aria-hidden="true"></span> Export
+                </div>
+
+                <div id="download_json" type="button" class="btn btn-default btn-md">
+                    <span class="glyphicon glyphicon-download" aria-hidden="true"></span> Download
+                </div>
+            </span>
+
+            <span id="sim_ops">
+              <div id="add_udo" type="button" class="btn btn-default btn-md">
+                  <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add UDO
+              </div>
+
+
+              <div id="config_sim" type="button" class="btn btn-default btn-md">
+                  <span class="glyphicon glyphicon-time" aria-hidden="true"></span> 
+                  <span id="config_label" class="ui-button-text">8:00 hours</span>
+              </div>
+
+              <div id="play_sim" type="button" class="btn btn-default btn-md">
+                  <span class="glyphicon glyphicon-play" aria-hidden="true"></span> Simulate
+              </div>
+            </span>
+          </span>
+        </div>
+
+        <span>
+          <div id="canvas">
+            <div id="accordion" class="ui-accordion ui-widget ui-helper-reset ui-accordion-icons" role="tablist">
+              <h3 class="ui-accordion-header ui-helper-reset ui-state-default ui-state-active ui-corner-top" role="tab" aria-expanded="true" aria-selected="true" tabindex="0">
+                <span class="ui-icon ui-icon-triangle-1-s"></span>
+                <a><font size="4">Instructions</font></a>
+              </h3>
+                     <div class="ui-accordion-content ui-helper-reset ui-widget-content ui-corner-bottom" role="tabpanel">
+                        <p style="font-size: 100%;"><strong>Adding objects.</strong> 
+                                 Insert instructions</p>
+                    </div>
+
+                    <h3 class="ui-accordion-header ui-helper-reset ui-state-default ui-corner-all ui-accordion-content-active" role="tab" aria-expanded="false" aria-selected="false" tabindex="-1"><span class="ui-icon ui-icon-triangle-1-e"></span><a href="#"><font size="3">Example Models and Exercises</font></a></h3>
+
+                    <div id="sample_models" class="ui-accordion-content ui-helper-reset ui-widget-content ui-corner-bottom" role="tabpanel" style="display: none;">
+                        <ul class="navigation">
+                            <li><a><button class="btn btn-primary btn-small" type="button" onclick="QueueApp.reset(1); QueueApp.loadtext(MODELS['bank_teller']);">Bank Teller</button></a></li>
+
+                            <li><a><button class="btn btn-primary btn-small" type="button" onclick="QueueApp.reset(1); QueueApp.loadtext(MODELS['plus_one']);">Plus</button></a></li>
+
+
+                            <li><a><button class="btn btn-primary btn-small" type="button" onclick="QueueApp.reset(1); QueueApp.loadtext(MODELS['single_shot']);">Single Shot</button></a></li>
+                            
+                            <li><a><button class="btn btn-primary btn-small" type="button" onclick="QueueApp.reset(1); QueueApp.loadtext(MODELS['feedback_loop_increment']);">Feedback Loop</button></a></li>
+
+                            <li><a href="#" id="model_mm1feedback">College Pathways</a></li>
+                            <li><a href="#" id="model_backforth">Traffic Lights</a></li>
+                            <li><a href="#" id="model_waterfall">Predator-Prey</a></li>
+                        </ul>
+                    </div>
+            </div>
+
+            </div>
+        </span>
+
+        <div id="results"></div>
+    </div>
+</div>
+
+  <!-- Dialogs. These are all hidden -->
+  <div id="server_stats" class="stats">
+      <h2>Server 1</h2>
+      <table class="stats_table" border="1">
+          <tbody><tr><th>Metric</th> <th>Mean</th><th>Std Dev</th></tr>
+          <tr><td>Arrivals</td><td id="arrival">-</td><td>-</td></tr>
+          <tr><td>Dropped</td><td id="drop">-</td><td>-</td></tr>
+          <tr><td>Server Utilization</td><td id="sutil">-</td><td>-</td></tr>
+          <tr><td>Time spent in queue</td><td id="qtime">-</td><td id="qtimed">-</td></tr>
+          <tr><td>Time spent in system</td><td id="stime">-</td><td id="stimed">-</td></tr>
+          <tr><td>Length of queue</td><td id="qsize">-</td><td id="qsized">-</td></tr>
+          <tr><td>Customers in system</td><td id="ssize">-</td><td id="ssized">-</td></tr>
+      </tbody></table>
+  </div>
+
+  <div id="sink_stats" class="stats">
+      <h2>Sink</h2>
+      <table class="stats_table" border="1">
+          <tbody><tr><th>Metric</th> <th>Mean</th><th>Std Dev</th></tr>
+          <tr><td>Departures</td><td id="depart">-</td><td>-</td></tr>
+          <tr><td>Population</td><td id="pop">-</td><td id="popd">-</td></tr>
+          <tr><td>Stay duration</td><td id="stay">-</td><td id="stayd">-</td></tr>
+      </tbody></table>
+  </div>
+
+  <div id="simulation_dialog" title="Simulation Properties" class="settings_form" style="display: none;">
+      <button id="simulation_dialog_close" class="settings_form_close ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only" role="button" aria-disabled="false" title=""><span class="ui-button-icon-primary ui-icon ui-icon-close"></span><span class="ui-button-text"></span></button>
+      <table>
+          <tbody><tr><td><label for="sim_until">Simulation duration</label>
+              <select id="time_selector" class="text ui-widget-content ui-corner-all" onChange="QueueApp.updateSettings();">
+                  <option>hours</option>
+                  <option>mins</option>
+                  <option>secs</option>
+              </select>
+          </td>
+          <td><input type="text" name="sim_until" class="text ui-widget-content ui-corner-all" value="5000" id="sim_until"></td></tr>
+          <tr><td><label for="sim_seed">Random generation seed</label>
+
+          </td>
+          <td><input type="text" name="sim_seed" class="text ui-widget-content ui-corner-all" value="null" id="sim_seed"></td></tr>
+      </tbody></table>
+      <hr>
+      <button id="simulation_dialog_save" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Apply</span></button>
+  </div>
+
+
+  <div id="server_form" class="settings_form" style="display: none; position: absolute;">
+      <button id="server_form_close" class="settings_form_close ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only" role="button" aria-disabled="false" title=""><span class="ui-button-icon-primary ui-icon ui-icon-close"></span><span class="ui-button-text"></span></button></br>
+      <table>
+              <tr>
+                  <td><label for="server_name">Name</label></td>
+                  <td><input type="text" name="serever_name" id="server_name" value="" class="text ui-widget-content ui-corner-all"></td>
+              </tr>
+      </table>
+      <table>
+          <tr>
+              <td><input id="use_udo_button" type="radio" class="big" name="tobe" value="use" onClick="checkRadioButtonServer()" disabled><font size="3">UDO</font>
+              <input id="use_function_button" type="radio" class="big" name="tobe" value="disable" checked onClick="checkRadioButtonServer()"><font size="3">Function</font></td>
+              <td><select name="server_dropdown_1" id="server_dropdown_1" class="text ui-widget-content ui-corner-all" onChange="serverDropper()">
+                          <option id="server_op1" value="gaussian">Gaussian</option>
+                          <option id="server_op2" value="exponential">Exponential</option>
+                          <option id="server_op3" value="pareto">Pareto</option>
+                          <option id="server_op4" value="random">Random</option>
+                          <option id="server_op5" value="gamma">Gamma</option>
+                          <option id="server_op6" value="weibull">Weibull</option>
+                          <option id="server_op7"  value="constant">Constant</option>
+                          <option id="server_udo_0"  value=""></option>
+                          <option id="server_udo_1"  value=""></option>
+                          <option id="server_udo_2"  value=""></option>
+                          <option id="server_udo_3"  value=""></option>
+                          <option id="server_udo_4"  value=""></option>
+
+                  </select>
+              </td> 
+          </tr>
+          <tr id="server_param_tr1">
+              <td><label for="queue_length">Parameter 1</label></td>
+              <td><input type="text" name="server_param1" value="" id="server_param1" class="text ui-widget-content ui-corner-all"></td>
+          </tr>
+          <tr id="server_param_tr2">
+              <td><label for="queue_length">Parameter 2</label></td>
+              <td><input type="text" name="server_param2" value="" id="server_param2" class="text ui-widget-content ui-corner-all"></td>
+          </tr>
+          <tr>
+              <td><label for="queue_length">Max Queue Length<br>(-1 for infinite queue)</label></td>
+              <td><input type="text" name="queue_length" value="-1" id="server_queue_length" class="text ui-widget-content ui-corner-all"></td>
+          </tr>
+          <tr>
+              <td><label for="num_servers">Number of Servers<br></label></td>
+              <td><input type="text" name="num_servers" value="1" id="num_servers" class="text ui-widget-content ui-corner-all"></td>
+          </tr>    
+      </table>
+      <hr>
+      <button id="server_form_delete" class="settings_form_delete ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" role="button" aria-disabled="false"><span class="ui-button-icon-primary ui-icon ui-icon-trash"></span><span class="ui-button-text">Delete</span></button>
+      <button id="server_form_disconnect" class="settings_form_disconnect ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Disconnect</span></button>
+      <button id="server_form_save" class="settings_form_save ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Apply</span></button>
+  </div>
+
+
+
+
+<!-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
+
+
+    <div id="graph_form" class="settings_form" style="display: none; position: absolute;">
+        <button id="graph_form_close" class="settings_form_close ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only" role="button" aria-disabled="false" title=""><span class="ui-button-icon-primary ui-icon ui-icon-close"></span><span class="ui-button-text"></span></button></br>
+        <div id="graph_form_to_append">
+        </div>
+        <table>
+            <tr id="server_param_tr1">
+                <td><label for="queue_length">Parameter 1</label></td>
+                <td><input type="text" name="server_param1" value=""  class="text ui-widget-content ui-corner-all"></td>
+            </tr>
+            <tr id="server_param_tr2">
+                <td><label for="queue_length">Parameter 2</label></td>
+                <td><input type="text" name="server_param2" value=""  class="text ui-widget-content ui-corner-all"></td>
+            </tr>
+            <tr>
+                <td><label for="queue_length">Max Queue Length<br>(-1 for infinite queue)</label></td>
+                <td><input type="text" name="queue_length" value="-1"  class="text ui-widget-content ui-corner-all"></td>
+            </tr>
+            <tr>
+                <td><label for="num_servers">Number of Servers<br></label></td>
+                <td><input type="text" name="num_servers" value="1" class="text ui-widget-content ui-corner-all"></td>
+            </tr>    
+        </table>
+      
+    </div>
+
+<!-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->    
+
+    <div id="source_form" title="Source Properties" class="settings_form" style="display: none; position: absolute;">
+        <button id="source_form_close" class="settings_form_close ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only"  role="button" aria-disabled="false" title=""><span class="ui-button-icon-primary ui-icon ui-icon-close"></span><span class="ui-button-text"></span><b></b></button></br>
+         <div id="source_form_name_div">
+            <table>
+                <tr>
+                    <td><label for="source_name">Name</label></td>
+                    <td><input type="text" name="source_name" id="source_name" value="" class="text ui-widget-content ui-corner-all"></td>
+                </tr>
+            </table>
+        </div>
+        <div id="source_form_to_append">
+        </div>
+        <hr>
+        <button id="source_form_delete" class="settings_form_delete ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" role="button" aria-disabled="false"><span class="ui-button-icon-primary ui-icon ui-icon-trash"></span><span class="ui-button-text">Delete</span></button>
+        <button id="source_form_disconnect" class="settings_form_disconnect ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Disconnect</span></button>
+        <button id="source_form_save" class="settings_form_save ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Apply</span></button>
+    </div>
+
+    <div id="sink_form" class="settings_form" style="display: none; position: absolute;">
+        <button id="sink_form_close" class="settings_form_close ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only" role="button" aria-disabled="false" title=""><span class="ui-button-icon-primary ui-icon ui-icon-close"></span><span class="ui-button-text"></span></button></br>
+        <table>
+            <tr>
+                <td><label for="sink_name">Name</label></td>
+                <td><input type="text" name="sink_name" id="sink_name" value="" class="text ui-widget-content ui-corner-all"></td>
+            </tr>
+        </table>
+        <hr>
+        <button id="sink_form_delete" class="settings_form_delete ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" role="button" aria-disabled="false"><span class="ui-button-icon-primary ui-icon ui-icon-trash"></span><span class="ui-button-text">Delete</span></button>
+        <button id="sink_form_save" class="settings_form_save ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Apply</span></button>
+    </div>
+
+    <div id="thermo_form" class="settings_form" style="display: none; position: absolute;">
+        <button id="thermo_form_close" class="settings_form_close ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only" role="button" aria-disabled="false" title=""><span class="ui-button-icon-primary ui-icon ui-icon-close"></span><span class="ui-button-text"></span></button></br>
+        <table>
+            <tr>
+                <td><label for="thermo_name">Name</label></td>
+                <td><input type="text" name="thermo_name" id="thermo_name" value="" class="text ui-widget-content ui-corner-all"></td>
+            </tr>
+        </table>
+        <hr>
+        <button id="thermo_form_delete" class="settings_form_delete ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" role="button" aria-disabled="false"><span class="ui-button-icon-primary ui-icon ui-icon-trash"></span><span class="ui-button-text">Delete</span></button>
+        <button id="thermo_form_save" class="settings_form_save ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Apply</span></button>
+    </div>
+
+    <div id="reverser_form" class="settings_form" style="display: none; position: absolute;">
+        <button id="reverser_form_close" class="settings_form_close ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only" role="button" aria-disabled="false" title=""><span class="ui-button-icon-primary ui-icon ui-icon-close"></span><span class="ui-button-text"></span></button></br>
+        <table>
+            <tr>
+                <td><label for="reverser_name">Name</label></td>
+                <td><input type="text" name="reverser_name" id="reverser_name" value="" class="text ui-widget-content ui-corner-all"></td>
+            </tr>
+        </table>
+        <hr>
+        <button id="reverser_form_delete" class="settings_form_delete ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" role="button" aria-disabled="false"><span class="ui-button-icon-primary ui-icon ui-icon-trash"></span><span class="ui-button-text">Delete</span></button>
+        <button id="reverser_form_save" class="settings_form_save ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Apply</span></button>
+    </div>
+
+    <div id="func_form" class="settings_form" style="display: none; position: absolute;">
+        <button id="func_form_close" class="settings_form_close ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only" role="button" aria-disabled="false" title=""><span class="ui-button-icon-primary ui-icon ui-icon-close"></span><span class="ui-button-text"></span></button></br>
+        <table>
+            <tr>
+                <td><label for="func_name">Name</label></td>
+                <td><input type="text" name="func_name" id="func_name" value="" class="text ui-widget-content ui-corner-all"></td>
+            </tr>
+        </table>
+        <hr>
+        <button id="func_form_delete" class="settings_form_delete ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" role="button" aria-disabled="false"><span class="ui-button-icon-primary ui-icon ui-icon-trash"></span><span class="ui-button-text">Delete</span></button>
+        <button id="func_form_save" class="settings_form_save ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Apply</span></button>
+    </div>
+
+    <div id="splitter_form" title="Splitter Properties" class="settings_form" style="display: none; position: absolute;">
+        <button id="splitter_form_close" class="settings_form_close ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only" role="button" aria-disabled="false" title=""><span class="ui-button-icon-primary ui-icon ui-icon-close"></span><span class="ui-button-text"></span></button></br>
+        <table>
+            <tr>
+                <td><label for="splitter_form_perc">Fraction of traffic that goes to the top channel</label></td>
+                <td><input type="text" name="splitter_form_perc" id="splitter_form_perc" value="" class="text ui-widget-content ui-corner-all"></td>
+            </tr>
+        </table>
+        <hr>
+        <button id="splitter_form_delete" class="settings_form_delete ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" role="button" aria-disabled="false"><span class="ui-button-icon-primary ui-icon ui-icon-trash"></span><span class="ui-button-text">Delete</span></button>
+        <button id="splitter_form_disconnect" class="settings_form_disconnect ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Disconnect</span></button>
+        <button id="splitter_form_save" class="settings_form_save ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Apply</span></button>
+    </div>
+
+    <div id="switch_form" title="Switch Properties" class="settings_form" style="display: none; position: absolute;">
+        <button id="switch_form_close" class="settings_form_close ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only" role="button" aria-disabled="false" title=""><span class="ui-button-icon-primary ui-icon ui-icon-close"></span><span class="ui-button-text"></span></button></br>
+        <table>
+            <tr>
+                <td><label for="switch_form_param1">Distribution</label></td>
+                <td><input type="text" name="switch_form_param1" id="switch_form_param1" value="" class="text ui-widget-content ui-corner-all"></td>
+            </tr>
+            <tr>
+                <td><label for="switch_form_param1">Param 1</label></td>
+                <td><input type="text" name="switch_form_param1" id="switch_form_param1" value="" class="text ui-widget-content ui-corner-all"></td>
+            </tr>
+            <tr>
+                <td><label for="switch_form_param2">Param 2</label></td>
+                <td><input type="text" name="switch_form_param2" id="switch_form_param2" value="" class="text ui-widget-content ui-corner-all"></td>
+            </tr>
+        </table>
+        <hr>
+        <button id="switch_form_delete" class="settings_form_delete ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" role="button" aria-disabled="false"><span class="ui-button-icon-primary ui-icon ui-icon-trash"></span><span class="ui-button-text">Delete</span></button>
+        <button id="switch_form_disconnect" class="settings_form_disconnect ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Disconnect</span></button>
+        <button id="switch_form_save" class="settings_form_save ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Apply</span></button>
+    </div>
+
+    <div id="splitfunc_form" title="Function Splitter Properties" class="settings_form" style="display: none; position: absolute;">
+        <button id="splitfunc_form_close" class="settings_form_close ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only" role="button" aria-disabled="false" title=""><span class="ui-button-icon-primary ui-icon ui-icon-close"></span><span class="ui-button-text"></span></button></br>
+        <table>
+            <tr>
+                <td><label for="splitfunc_form_funct">Choose UDO field</label></td>
+                    <td><select name="splitfunc_dropdown_0" id="splitfunc_dropdown_0" class="text ui-widget-content ui-corner-all">
+                            <!-- <option value="gaussian">Gaussian</option>
+                            <option value="exponential">Exponential</option>
+                            <option value="pareto">Pareto</option>
+                            <option value="random">Random</option>
+                            <option value="gamma">Gamma</option>
+                            <option value="weibull">Weibull</option>
+                            <option value="constant">Constant</option> -->
+                        </select> 
+                </td>
+            </tr>
+            <tr>
+                <td><label for="splitfunc_form_funct">Function to determine what traffic goes to the top channel</label></td>
+                    <td><select name="splitfunc_dropdown_1" id="splitfunc_dropdown_1" class="text ui-widget-content ui-corner-all">
+                            <option value=">">></option>
+                            <option value=">=">>=</option>
+                            <option value="<"><</option>
+                            <option value="<="><=</option>
+                            <option value="==">==</option>
+                            <option value="!=">!=</option>
+                        </select> 
+                </td>
+                <td><input type="text" name="splitfunc_form_param1" id="splitfunc_form_param1" value="" class="text ui-widget-content ui-corner-all"></td>
+            </tr>
+            
+        </table>
+        <hr>
+        <button id="splitfunc_form_delete" class="settings_form_delete ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" role="button" aria-disabled="false"><span class="ui-button-icon-primary ui-icon ui-icon-trash"></span><span class="ui-button-text">Delete</span></button>
+        <button id="splitfunc_form_disconnect" class="settings_form_disconnect ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Disconnect</span></button>
+        <button id="splitfunc_form_save" class="settings_form_save ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Apply</span></button>
+    </div>
+
+
+    <div id="funcblock_form" title="Function Block Properties" class="settings_form" style="display: none; position: absolute;">
+            <button id="funcblock_form_close" class="settings_form_close ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only" role="button" aria-disabled="false" title=""><span class="ui-button-icon-primary ui-icon ui-icon-close"></span><span class="ui-button-text"></span></button></br>
+            <table>
+                <tr>
+                    <td><label for="funcblock_form_funct">Choose UDO field</label></td>
+                        <td><select name="funcblock_dropdown_0" id="funcblock_dropdown_0" onChange="funcBlockDropdownSwitch()"class="text ui-widget-content ui-corner-all">
+                            </select> 
+                    </td>
+                </tr>
+                <tr>
+                    <td><label for="funcblock_form_funct">Function to determine what traffic goes to the top channel</label></td>
+                        <td><select name="funcblock_dropdown_1" id="funcblock_dropdown_1" class="text ui-widget-content ui-corner-all">
+                                <option id="addition"value="+">+</option><!-- int, float -->
+                                <option id="subtraction"value="-">-</option><!-- int, float -->
+                                <option id="multiplication"value="*">x</option><!-- int float -->
+                                <option id="division" value="/">/</option><!-- int, float (do we care about zero)-->
+                                <option id="modulus" value="%">%</option><!-- int -->
+                                <option id="not" value="!">!</option><!-- boolean -->
+                            </select> 
+                    </td>
+                    <td><input type="text" name="funcblock_form_param1" id="funcblock_form_param1" value="" class="text ui-widget-content ui-corner-all"></td>
+                </tr>
+                
+            </table>
+            <hr>
+            <button id="funcblock_form_delete" class="settings_form_delete ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" role="button" aria-disabled="false"><span class="ui-button-icon-primary ui-icon ui-icon-trash"></span><span class="ui-button-text">Delete</span></button>
+            <button id="funcblock_form_disconnect" class="settings_form_disconnect ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Disconnect</span></button>
+            <button id="funcblock_form_save" class="settings_form_save ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Apply</span></button>
+        </div>
+
+
+
+
+    <div id="udo_form" class="udo_form" style="display: none; position: absolute;">
+        <button id="source_form_close" class="settings_form_close ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only" role="button" aria-disabled="false" title=""><span class="ui-button-icon-primary ui-icon ui-icon-close"></span><span class="ui-button-text"></span><b></b></button></br>
+        
+        <div id="udo_form_to_append">
+              
+        </div>
+
+        <form id="form1">
+            <form>
+            <input id="use_radio_button" type="radio" class="big" name="tobe" value="use" ><font size="3">Use</font>
+            &nbsp; &nbsp; &nbsp;
+            <input id="disable_radio_button" type="radio" class="big" name="tobe" value="disable" ><font size="3">Disable</font>
+            </form>
+            <hr>
+            <!-- <br /> -->
+            <div id="TextBoxContainer" style="overflow: auto; height:100px;">
+           <!--Textboxes will be added here -->
+           <table id="udo_dailogue_table">
+                   <tr id="udo_row_0">
+                       <td> <input id="udo_text_box_0" type="text" value="field 0" class="text ui-widget-content ui-corner-all" /></td>
+                       <td><select name="sources_dropdown" class = "ui-widget-content ui-corner-all" id="udo_dropdown_0" class="text ui-widget-content ui-corner-all">
+                           <option  value="INT">INT</option>
+                           <option  value="FLOAT">FLOAT</option>
+                           <option  value="BOOLEAN">BOOLEAN</option>
+                       </select></td>
+                   </tr>
+
+                   <tr id="udo_row_1" style="display: none">
+                       <td> <input id="udo_text_box_1" type="text" value = "field 1" class="text ui-widget-content ui-corner-all" /></td>
+                       <td><select name="sources_dropdown" class = "ui-widget-content ui-corner-all" id="udo_dropdown_1" class="text ui-widget-content ui-corner-all">
+                                <option  value="INT">INT</option>
+                                <option  value="FLOAT">FLOAT</option>
+                                <option  value="BOOLEAN">BOOLEAN</option>
+                            </select>
+                        </td>
+
+                       <td> <button class= "udo_button_close ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only" onclick = "removeUdoTableRow(1)" /></button> 
+                       </td>
+                   </tr>
+
+                   <tr id="udo_row_2" style="display: none">
+                       <td> <input id="udo_text_box_2" type="text" value = "field 2" class="text ui-widget-content ui-corner-all" /></td>
+                       <td><select name="sources_dropdown" class = "ui-widget-content ui-corner-all" id="udo_dropdown_2" class="text ui-widget-content ui-corner-all">
+                           <option  value="INT">INT</option>
+                           <option  value="FLOAT">FLOAT</option>
+                           <option  value="BOOLEAN">BOOLEAN</option>
+                       </select></td>
+
+                        <td> <button class="udo_button_close ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only" onclick = "removeUdoTableRow(2)" /> </button> 
+                       </td>
+                   </tr>
+
+                   <tr id="udo_row_3" style="display: none">
+                       <td> <input id="udo_text_box_3" type="text" value = "field 3" class="text ui-widget-content ui-corner-all" /></td>
+                       <td><select name="sources_dropdown" class = "ui-widget-content ui-corner-all" id="udo_dropdown_3" class="text ui-widget-content ui-corner-all">
+                           <option  value="INT">INT</option>
+                           <option  value="FLOAT">FLOAT</option>
+                           <option  value="BOOLEAN">BOOLEAN</option>
+                       </select></td>
+
+                        <td> <button class="udo_button_close ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only" onclick = "removeUdoTableRow(3)" /> </button> 
+                       </td>
+                   </tr>
+
+                   <tr id="udo_row_4" style="display: none">
+                       <td> <input id="udo_text_box_4" type="text" value = "field 4" class="text ui-widget-content ui-corner-all"/></td>
+                       <td><select name="sources_dropdown" class = "ui-widget-content ui-corner-all" id="udo_dropdown_4" class="text ui-widget-content ui-corner-all">
+                           <option  value="INT">INT</option>
+                           <option  value="FLOAT">FLOAT</option>
+                           <option  value="BOOLEAN">BOOLEAN</option>
+                       </select></td>
+
+                        <td> <button class="udo_button_close ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only" onclick = "removeUdoTableRow(4)" /></button> 
+                       </td>
+                   </tr>
+           </table>
+                  
+           </div>
+           <div id="udo_save_btns_div">
+            <button id="btnAdd" class = "ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" onclick="addUdoTableRow()" ><span class="ui-button-text">Add</span></button>
+            <button id="btnApply" class = "ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" onclick="saveUDOParams()"><span class="ui-button-text">Apply</span></button>
+            </div>
+            
+        </form>
+        
+       <!-- <button id="source_form_delete" class="settings_form_delete ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" role="button" aria-disabled="false"><span class="ui-button-icon-primary ui-icon ui-icon-trash"></span><span class="ui-button-text">Delete</span></button>
+        <button id="source_form_disconnect" class="settings_form_disconnect ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Disconnect</span></button>
+        <button id="source_form_save" class="settings_form_save ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Apply</span></button> -->
+
+    </div>
+
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+
+<style type="text/css">
+    
+    path { 
+    stroke: steelblue;
+    stroke-width: 2;
+    fill: none;
+}
+
+.axis path,
+.axis line {
+    fill: none;
+    stroke: grey;
+    stroke-width: 1;
+    shape-rendering: crispEdges;
+}
+</style>
+
+<!--
+<script>
+
+// Set the dimensions of the canvas / graph
+var margin = {top: 30, right: 20, bottom: 30, left: 50},
+    width = 300 - margin.left - margin.right,
+    height = 400 - margin.top - margin.bottom;
+
+// Parse the date / time
+var parseDate = d3.time.format("%d-%b-%y").parse;
+
+// Set the ranges
+var x = d3.time.scale().range([0, width]);
+var y = d3.scale.linear().range([height, 0]);
+
+// Define the axes
+var xAxis = d3.svg.axis().scale(x)
+    .orient("bottom").ticks(5);
+
+var yAxis = d3.svg.axis().scale(y)
+    .orient("left").ticks(5);
+
+// Define the line
+var valueline = d3.svg.line()
+    .x(function(d) { return x(d.date); })
+    .y(function(d) { return y(d.close); });
+    
+// Adds the svg canvas
+var svg = d3.select("#analytics_graph")
+    .append("svg")
+        .attr("width", width - 400 + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+        .attr("transform", 
+              "translate(" + margin.left + "," + margin.top + ")");
+
+// Get the data
+d3.csv("data.tsv", function(error, data) {
+    data.forEach(function(d) {
+        d.date = parseDate(d.date);
+        d.close = +d.close;
+    });
+    // Scale the range of the data
+    x.domain(d3.extent(data, function(d) { return d.date; }));
+    y.domain([0, d3.max(data, function(d) { return d.close; })]);
+
+    // Add the valueline path.
+    svg.append("path")
+        .attr("class", "line")
+        .attr("d", valueline(data));
+
+    // Add the X Axis
+    svg.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + height + ")")
+        .call(xAxis);
+
+    // Add the Y Axis
+    svg.append("g")
+        .attr("class", "y axis")
+        .call(yAxis);
+});
+
+</script>
+-->
+    
+    
+    <!-- modified code ends here -->
+
+
+<div class="ui-dialog ui-widget ui-widget-content ui-corner-all ui-draggable" tabindex="-1" role="dialog" aria-labelledby="ui-dialog-title-verify_clear" style="display: none; z-index: 1000; outline: 0px;"><div class="ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix"><span class="ui-dialog-title" id="ui-dialog-title-verify_clear">&nbsp;</span><a href="#" class="ui-dialog-titlebar-close ui-corner-all" role="button"><span class="ui-icon ui-icon-closethick">close</span></a></div><div id="verify_clear" class="ui-dialog-content ui-widget-content">
+        <p><span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;"></span>
+            Do you wish to discard the scenario in the canvas?</p>
+    </div><div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix"><div class="ui-dialog-buttonset"><button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Cancel</span></button><button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Ok</span></button></div></div></div><div class="ui-dialog ui-widget ui-widget-content ui-corner-all ui-draggable" tabindex="-1" role="dialog" aria-labelledby="ui-dialog-title-save_dialog" style="display: none; z-index: 1000; outline: 0px;"><div class="ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix"><span class="ui-dialog-title" id="ui-dialog-title-save_dialog">Save</span><a href="#" class="ui-dialog-titlebar-close ui-corner-all" role="button"><span class="ui-icon ui-icon-closethick">close</span></a></div><div id="save_dialog" class="ui-dialog-content ui-widget-content">
+        <p>Copy-paste the text below in a text file.You can load this scenario later
+            by clicking the 'Load' button in the toolbar, and pasting this text.</p>
+        <textarea id="save_textarea" name="save_textarea" rows="20" cols="80"></textarea>
+    </div></div><div class="ui-dialog ui-widget ui-widget-content ui-corner-all ui-draggable" tabindex="-1" role="dialog" aria-labelledby="ui-dialog-title-load_dialog" style="display: none; z-index: 1000; outline: 0px;"><div class="ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix"><span class="ui-dialog-title" id="ui-dialog-title-load_dialog">Load</span><a href="#" class="ui-dialog-titlebar-close ui-corner-all" role="button"><span class="ui-icon ui-icon-closethick">close</span></a></div><div id="load_dialog" class="ui-dialog-content ui-widget-content">
+        <p>Copy the text below</p>
+        <textarea id="load_textarea" name="load_textarea" rows="20" cols="40"></textarea>
+    </div><div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix"><div class="ui-dialog-buttonset"><button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Cancel</span></button><button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Load</span></button></div></div></div><i title="Raphaël Colour Picker" style="display: none; color: rgb(255, 192, 203);"></i><iframe name="oauth2relay622341419" id="oauth2relay622341419" src="https://accounts.google.com/o/oauth2/postmessageRelay?parent=http%3A%2F%2Fsimjs.com#rpctoken=438235500&amp;forcesecure=1" tabindex="-1" style="width: 1px; height: 1px; position: absolute; top: -100px;"></iframe>
+
+
+    <script src="visual/lineGraph.js" type="text/javascript"></script>
+
+    </body></html>
+

@@ -1,0 +1,483 @@
+<html itemscope="" itemtype="http://schema.org/Product"><head>
+	<meta http-equiv="Content-type" content="text/html; charset=utf-8">
+	
+	<meta itemprop="name" content="BlueSim :: Test Site">
+	<!--
+	<meta itemprop="description" content="M/M/1 Queuing Simulator">
+	<meta property="og:title" content="M/M/1 Queuing Simulator">
+	<meta property="og:type" content="website">
+	<meta property="og:url" content="http://www.simjs.com/queuing">
+	<meta property="og:site_name" content="BlueSim">
+	-->
+	<title>Backend Test Site</title>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+	<style type="text/css"></style>
+	<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="lib/d3v3.js" type="text/javascript" charset="utf-8"></script>
+	<script src="lib/raphael-min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="js/sim-0.26.js" type="text/javascript" charset="utf-8"></script>
+	<script src="js/global.js" type="text/javascript" charset="utf-8"></script>
+	<script src="js/queuing-min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="js/image-view.js" type="text/javascript" charset="utf-8"></script>
+	<script src="js/stat-animation-manager.js" type="text/javascript" charset="utf-8"></script>
+	<script src="entities/data.js" type="text/javascript" charset="utf-8"></script>
+	<script src="entities/splitfunction.js" type="text/javascript" charset="utf-8"></script>
+	<script src="entities/sink.js" type="text/javascript" charset="utf-8"></script>
+	<script src="entities/source.js" type="text/javascript" charset="utf-8"></script>
+	<script src="entities/server.js" type="text/javascript" charset="utf-8"></script>
+	<script src="entities/func.js" type="text/javascript" charset="utf-8"></script>
+	<script src="entities/reverser.js" type="text/javascript" charset="utf-8"></script>
+	<script src="entities/thermo.js" type="text/javascript" charset="utf-8"></script>
+	<!--<script src="graph/simresults.js" type="text/javascript" charset="utf-8"></script> -->
+	<script src="graph/statman.js" type="text/javascript" charset="utf-8"></script>
+	
+	<!-- added new stylesheet -->
+	<link rel="stylesheet" href="css/jquery-ui-1.8.16.custom.css" type="text/css" media="screen" title="no title" charset="utf-8">
+</head>
+<style>
+</style>
+<script>
+	QueueApp.debug = true;
+	function markTest(want, got, id){
+		var header = $("#"+id);
+		header.css("color", "red");
+		if(want === got){
+			header.css("color", "green");
+			$("#"+id+"_p").hide();
+			$("#"+id).css("font-size", "9px");
+			//console.log(header.text() + " has succeeded");
+		} else {
+			header.css("color", "red");
+			header.css("font-size", "28px");
+			want && console.log(header.text() + " has failed!");
+			want && console.log("got   : " + got);
+			want && console.log("wanted: " + want);
+		}
+	}
+</script>
+<body>
+<canvas width=1 height=1 id="canvas"></canvas>
+<h1>Testing Site</h2>
+<p>
+	We can use this site to test the backend code without depending on the frontend team. Basically, we will 
+	just create the simulations in JSON, run them, and check the results. The TODO list is for us to write down our subtasks (scrum..? kind..? maybe..?).
+</p>
+<h2>TODOs</h2>
+<p>Don't erase these bullets.. just put a strike through and I guess your name so we know who is doing what</p>
+<ul>
+<li><span style="text-decoration: line-through;">for example: test json on source</span> Nicolas</li>
+<li><span style="text-decoration: line-through;">make this look nicer</span></li>
+<li><span style="text-decoration: line-through;">Lawrence test JSON for Switch</span> Lawrence</li>
+<li><span style="text-decoration: line-through;">Tim test JSON for switchFunction</span> Tim</li>
+<li><span style="text-decoration: line-through;">Tim expose option to have multiple servers</span> Tim</li>
+<li><span style="text-decoration: line-through;">Sam test JSON for server</span> Lawrence</li>
+<li><span style="text-decoration: line-through;">Nicolas test JSON for func block</span> Nicolas</li>
+<li><span style="text-decoration: line-through;">David test JSON for sink (hopefully should be unchanged :p)</span> Nicolas</li>
+<li><span style="text-decoration: line-through;">Lawrence confirm correctness of switch</span> Lawrence</li>
+<li><span style="text-decoration: line-through;">Nicolas confirm correctness of func block</span> Nicolas</li>
+<li><span style="text-decoration: line-through;">Tim confirm correctness of splitFunc</span> Tim</li>
+<li><span style="text-decoration: line-through;">Update statistics to reflect UDO fields</span> Tim (handling by updating sink)</li>
+<li><span style="text-decoration: line-through;">Sam expose more of the server by making it a generic facility object in sim.js 
+	(right now it is only a queue but you can change the options so that it can be a stack too</span> Sam</li>
+<li><span style="text-decoration: line-through;">Work with frontend team to develop a sane form to interact with dropdown box 
+	for distributions and then dynamic number of parameters based on distribution chosen</span> Nicolas</li>
+<li><span style="text-decoration: line-through;">instead of only distributions, the queue can also use udo fields 
+	to determine wait time (for bank teller example)</span> Lawrence</li>
+<li><span style="text-decoration: line-through;">figure out the raphael bug</span></li>
+<li><span style="text-decoration: line-through;">Need to actually test the fields generated by source</span> Lawrence</li>
+<li><span style="text-decoration: line-through;">Need to round integers from randist if necessary</span> Lawrence</li>
+<li><span style="text-decoration: line-through;">Sink should have reporting on the udo fields</span> Tim</li>
+<li><span style="text-decoration: line-through;">Create simple pipe entity to make nicer connections</span> David</li>
+<li><span style="text-decoration: line-through;">Test new stack object</span> Nicolas & Lawrence</li>
+<li><span style="text-decoration: line-through;">Test stack object uses UDO values</span> Lawrence</li>
+<li><span style="text-decoration: line-through;">Make JSON downloadable</span> Nicolas</li>
+<li><span style="text-decoration: line-through;">Test reverser entity</span> David & Nicolas</li>
+<li><span style="text-decoration: line-through;">Lawrence - Make results downloadable, maybe every entity should have a getStat() function which returns the stats in some
+	standard form and then you just append all these strings and call blueSimDownload (in global.js)</span> Lawrence</li>
+<li><span style="text-decoration: line-through;">Tim - more stats out of sink</span> Tim</li>
+<li><span style="text-decoration: line-through;">Tim - change structure of udoStats in sink</span></li>
+<li><span style="text-decoration: line-through;">Nicolas - Adapt to code refactoring by frontend team when they change how we deal with distribution and param fields</span> Nicolas</li>
+<li><span style="text-decoration: line-through;">David - add a "thermometer" entity</span> Nicolas</li>
+<li><span style="text-decoration: line-through;">Sam - Give entities custom names? We definitely want to keep up the ids queue_1, sink_1, etc but the user should also be able to assign a name if they choose to. The default name will be the id.</span> Sam</li>
+<li><span style="text-decoration: line-through;">David - test reverser on actual frontend (need to make the input come from the right side and output from the left side</span> David, Lawrence, Nicolas</li>
+<li><span style="text-decoration: line-through;">Tim - update function splitter to merge functionality with regular splitter</span> Tim</li>
+<li><span style="text-decoration: line-through;">Tim - remove references to stack, switch, and splitter</span> Tim</li>
+<li><span style="text-decoration: line-through;">fix weird arrow bug with reverser</span> David</li>
+<li><span style="text-decoration: line-through;">Make data accessible within models instead of only computing stats on the fly</span> Lawrence</li>
+<li><span style="text-decoration: line-through;">prepare forms for function strings</span> Mehran</li>
+<li><span style="text-decoration: line-through;">prepare forms for names?</span> Frontend</li>
+<li><span style="text-decoration: line-through;">check func blocks for type preservation</span> Frontend</li>
+<li><span style="text-decoration: line-through;">There is a bug involving multiple sources and queues.  See the Download_Stat scenario.</span> Lawrence</li>
+<li><span style="text-decoration: line-through;">Connect frontend to backend with forms</span> Mehran, Nicolas </li>
+<li><span style="text-decoration: line-through;">Make fix old tests because of latest code sprint, func addition is failing</li>
+<li>Setup documentation page, sphinx?</li>
+<li>Write more tests to check func split and func block for correctness</li>
+</ul>
+<h2>Tests</h2>
+<h3>JSON Testing</h3>
+<p>Remember to remove spaces from input JSON..</p>
+<script>
+	/* JSON testing function */
+	function	testJSON(id, input, output){
+		markTest(null, "STYLING", id);
+		header = $("#"+id);
+		console.log("starting: " + id);
+		QueueApp.init();
+		QueueApp.loadtext(input);
+		var testString = QueueApp.stringify();
+		markTest(output, testString, id);
+	}
+
+</script>
+<h4 id="Init_JSON_Test">Init JSON Test</h4>
+	<p id="Init_JSON_Test_p">Check loading and saving an empty simulation</p>
+	<script>
+		var json = '{"until":28800,"seed":1429928932446,"version":"1.1","udo":[],"use_udo":false,"udoName":"Ping","objects":[]}';
+		testJSON("Init_JSON_Test", json, json);
+	</script>
+<h4 id="Add_UDO_Fields">Check UDO Fields</h4>
+	<p id="Add_UDO_Fields_p">
+	Put in UDO (field, type) tuples.
+	</p>
+	<script>
+		var json = '{"until":28800,"seed":1429928972262,"version":"1.1","udo":[["field 0","INT"],["field 1","INT"]],"use_udo":true,"udoName":"Ping","objects":[]}';
+		testJSON("Add_UDO_Fields", json, json);
+	</script>
+<h4 id="Add_Duplicate_Fields_To_UDO">Add Duplicate Fields to UDO</h4>
+	<p id="Add_Duplicate_Fields_To_UDO_p">
+	Add UDO tuples with duplicate field names, QueueApp should allow the first one and ignore subsequent tuples of the same field name
+	</p>
+	<script>
+		var json = '{"until":100,"seed":1234,"version":"1.1","udo":[["A","INT"],["A","FLOAT"]],"use_udo":false,"udoName":"NAME","objects":[]}'
+		var soln = '{"until":100,"seed":1234,"version":"1.1","udo":[["A","INT"]],"use_udo":false,"udoName":"NAME","objects":[]}'
+		testJSON("Add_Duplicate_Fields_To_UDO", json, soln);
+	</script>
+<h4 id="Add_Bad_Types_To_UDO">Add Bad Types To UDO</h4>
+	<p id="Add_Bad_Types_To_UDO_p">
+	If the type of a tuple is bad then ignore it.. case should not matter. Although, the output JSON will always have the type in uppercase for consistency.
+	</p>
+	<script>
+		var json = '{"until":100,"seed":1234,"version":"1.1","udo":[["A","INT"],["B","int"],["C","integer"]],"use_udo":true,"udoName":"NAME","objects":[]}'
+		var soln = '{"until":100,"seed":1234,"version":"1.1","udo":[["A","INT"],["B","INT"]],"use_udo":true,"udoName":"NAME","objects":[]}'
+		testJSON("Add_Bad_Types_To_UDO", json, soln);
+	</script>
+<h4 id="Add_Sink">Add Sink</h4>
+	<p id="Add_Sink_p">
+	Attempt to add a single sink to the simulation.
+	</p>
+	<script>
+		var json = '{"until":28800,"seed":1429928972262,"version":"1.1","udo":[["field 0","INT"],["field 1","INT"]],"use_udo":true,"udoName":"Ping","objects":[{"x":236,"y":134,"type":"sink","name":"sink_1","model":null}]}';
+		testJSON("Add_Sink", json, json);
+	</script>
+<h4 id="Add_Source">Add Source</h4>
+	<p id="Add_Source_p">
+	Attempt to add a single source to the simulation.
+	</p>
+	<script>
+		var json = '{"until":28800,"seed":1429932011375,"version":"1.1","udo":[],"use_udo":true,"udoName":"Ping","objects":[{"x":215,"y":106,"type":"source","name":"source_1","model":{"params":[null,null],"distribution":"random","udoFields":{}}}]}';
+		testJSON("Add_Source", json, json);
+	</script>
+<h4 id="Add_Source_With_UDO_And_Fields">Add Source with UDO and Fields</h4>
+	<p id="Add_Source_With_UDO_And_Fields_p">
+	Check that we can create the source with specific fields for the udo.
+	</p>
+	<script>
+		var json = '{"until":28800,"seed":1429932011375,"version":"1.1","udo":[["field 0","INT"]],"use_udo":true,"udoName":"Ping","objects":[{"x":194,"y":94,"type":"source","name":"source_2","model":{"params":[null,null],"distribution":"random","udoFields":{"field 0":{"type":"INT","distribution":"random","params":[null,null],"boolBase":0}}}}]}';
+		testJSON("Add_Source_With_UDO_And_Fields", json, json);
+	</script>
+<h4 id="Add_Func_Splitter">Add Function Splitter</h4>
+	<p id="Add_Func_Splitter_p">
+	Attempt to add a single function splitter to the simulation.
+	</p>
+	<script>
+		var json = '{"until":28800,"seed":1429932011375,"version":"1.1","udo":[["field 0","INT"]],"use_udo":true,"udoName":"Ping","objects":[{"x":210,"y":156,"type":"splitfunc","name":"splitfunc_2","out":[null,null],"model":{"fieldToCheck":"","prob":0.5,"op":"","constant":""}}]}';
+		testJSON("Add_Func_Splitter", json, json);
+	</script>
+
+<h4 id="Add_Func">Add Func</h4>
+	<p id="Add_Func_p">
+	Simple test of adding a function block.. with no actual function string.
+	</p>
+	<script>
+		var json = '{"until":28800,"seed":1429932011375,"version":"1.1","udo":[["field 0","INT"]],"use_udo":true,"udoName":"Ping","objects":[{"x":218,"y":149,"type":"splitfunc","name":"splitfunc_1","out":[null,null],"model":{"fieldToCheck":"field 0","prob":0.5,"op":">","constant":"4"}}]}';
+		testJSON("Add_Func", json, json);
+	</script>
+
+<h4 id="Add_Single_Server">Add Single Server</h4>
+	<p id="Add_Single_Server_p">
+	Try creating a server.
+	</p>
+	<script>
+		var json = '{"until":28800,"seed":1429932011375,"version":"1.1","udo":[["field 0","INT"]],"use_udo":true,"udoName":"Ping","objects":[{"x":246,"y":111,"type":"queue","name":"queue_1","model":{"nservers":1,"maxqlen":-1,"distribution":"constant","params":[null,null]}}]}';
+		testJSON("Add_Single_Server", json, json);
+	</script>
+
+
+<h4 id="Add_Reverser">Add Reverser</h4>
+	<p id="Add_Reverser_p">
+	Add a reverser
+	</p>
+	<script>
+		var json = '{"until":28800,"seed":1429932011375,"version":"1.1","udo":[["field 0","INT"]],"use_udo":true,"udoName":"Ping","objects":[{"x":212,"y":188,"type":"reverser","name":"reverser_1","model":null}]}';
+		testJSON("Add_Reverser", json, json);
+	</script>
+<h4 id="Add_Thermometer">Add Thermometer</h4>
+	<p id="Add_Thermometer_p">
+	Add a thermometer.
+	</p>
+	<script>
+		var json = '{"until":28800,"seed":1429932011375,"version":"1.1","udo":[["field 0","INT"]],"use_udo":true,"udoName":"Ping","objects":[{"x":158,"y":238,"type":"thermometer","name":"thermometer_1","model":null}]}';
+		testJSON("Add_Thermometer", json, json);
+	</script>
+
+<h3>Simple Run Tests</h3>
+<p>Just check that things run</p>
+<script>
+	function	doSimpleRun(id, input){
+		header = $("#"+id);
+		QueueApp.init();
+		QueueApp.loadtext(input);
+		QueueApp.startSim();
+	}
+</script>
+
+<h4 id="Exponential_Source_To_Sink">Exponential Source To Sink</h4>
+	<p id="Exponential_Source_To_Sink_p">
+	Let's just hook up the source to a sink again and make sure all of the data gets through the wire
+	</p>
+	<script>
+		var udo = '{"A":{"type":"INT","distribution":"exponential","params":[1,null],"boolBase":0}}';
+		var source = '{"x":0,"y":0,"type":"source","name":"source_1","out":"sink_1","model":{"params":[[0,null]],"distribution":"exponential","udoFields":'+udo+'}}'
+		var sink = '{"x":1,"y":1,"type":"sink","name":"sink_1","model":null}';
+		var json = '{"until":100,"seed":1234,"version":"1.1","udo":[["A","INT"]],"udoName":"NAME","objects":[' + source +',' +sink+']}'
+		doSimpleRun("Exponential_Source_To_Sink", json);
+		var gen = QueueApp.models[1].entity.spawn;
+		var rec = QueueApp.models[0].entity.population.durationSeries.count();
+		markTest(gen, rec, "Exponential_Source_To_Sink");
+	</script>
+
+
+	
+<h4 id="Queue_Verify">Verify that Queue Works</h4>
+	<p id="Queue_Verify_p">
+	Queue actually pushes things through it to the sink behind.  Doesn't drop stuff.
+	</p>
+	<script>
+		markTest(null, "", "Queue_Verify");
+		var udo = '{"A":{"type":"INT","distribution":"exponential","params":[1,null],"boolBase":0}}';
+		var serv = '{"x":3,"y":3,"type":"queue","name":"queue_1","out":"sink_1","model":{"nservers":1,"maxqlen":-1,"distribution":"exponential","params":[0,null]}}'
+		var sink = '{"x":1,"y":1,"type":"sink","name":"sink_1","model":null}';
+		var source = '{"x":0,"y":0,"type":"source","name":"source_1","out":"queue_1","model":{"params":[0,null],"distribution":"exponential","udoFields":'+udo+'}}'
+		var json = '{"until":100,"seed":1234,"version":"1.1","udo":[["A","INT"]],"udoName":"NAME","objects":['+serv+','+ source +',' + sink +']}'
+		doSimpleRun("Queue_Verify", json);
+		//There will probably always be a few remainders in the queue by the end of the simulation.
+		var rem = QueueApp.models[2].entity.remainder
+		var gen = QueueApp.models[1].entity.spawn;
+		var rec = QueueApp.models[0].entity.population.durationSeries.count();
+		markTest(gen, rec + rem, "Queue_Verify");
+	</script>
+
+<h4 id="Constant_Source_To_Sink">Constant Source To Sink</h4>
+	<p id="Constant_Source_To_Sink_p">
+	Tests 10 randomized outputs
+	</p>
+	<script>
+		var udo = '{"A":{"type":"INT","distribution":"random","params":[null,null],"boolBase":0}}';
+		var source = '{"x":0,"y":0,"type":"source","name":"source_1","out":"sink_1","model":{"params":[1,null],"distribution":"constant","udoFields":'+udo+'}}'
+		var sink = '{"x":1,"y":1,"type":"sink","name":"sink_1","model":null}';
+		var json = '{"until":10,"seed":1234,"version":"1.1","udo":[["A","INT"]],"udoName":"NAME","objects":[' + source +',' +sink+']}'
+		doSimpleRun("Constant_Source_To_Sink", json);
+		var gen = QueueApp.models[1].entity.spawn;
+		var rec = QueueApp.models[0].entity.population.durationSeries.count();
+		markTest(gen, rec, "Constant_Source_To_Sink");
+	</script>
+	
+<h4 id="Queue_Udo_Verify">Verify that Queue with UdoField time value works properly</h4>
+	<p id="Queue_Udo_Verify_p">
+	Queue actually pushes things through it to the sink behind.  Doesn't drop stuff.
+	</p>
+	<script>
+		markTest(null, "", "Queue_Udo_Verify");
+		var udo = '{"A":{"type":"INT","distribution":"constant","params":[100,null],"boolBase":0}}'
+		var serv = '{"x":3,"y":3,"type":"queue","name":"queue_1","out":"sink_1","model":{"nservers":1,"maxqlen":-1,"distribution":"custom","params":["A",null]}}'
+		var sink = '{"x":1,"y":1,"type":"sink","name":"sink_1","model":null}';
+		var source = '{"x":0,"y":0,"type":"source","name":"source_1","out":"queue_1","model":{"params":[1,null],"distribution":"exponential","udoFields":'+udo+'}}'
+		var json = '{"until":100,"seed":1234,"version":"1.1","udo":[["A","INT"]],"udoName":"NAME","objects":['+serv+','+ source +',' + sink +']}'
+		doSimpleRun("Queue_Udo_Verify", json);
+		//There will probably always be a few remainders in the queue by the end of the simulation.
+		var rem = QueueApp.models[2].entity.remainder
+		var gen = QueueApp.models[1].entity.spawn;
+		var rec = QueueApp.models[0].entity.population.durationSeries.count();
+		markTest(1, rec, "Queue_Udo_Verify");
+		markTest(gen, rec + rem, "Queue_Udo_Verify");
+	</script>
+<p>
+*For some reason, the sum of populations in both sinks within "Verify that Switch Actually Works" is always one more than what was generated.  Don't worry though, it's 大丈夫.
+</p>
+<h4 id="Func_Addition">Func Addition</h4>
+	<p id="Func_Addition_p">
+	Do some addition with a func block.
+	</p>
+	<script>
+		markTest(null, "", "Func_Addition");
+		var json = '{"until":10,"seed":1429927419825,"version":"1.1","udo":[["field0","INT"]],"use_udo":true,"use_udo":true,"udoName":"Ping","objects":[{"x":418,"y":75,"type":"sink","name":"sink_1","model":null},{"x":252,"y":110,"type":"func","name":"func_1","out":"sink_1","model":{"fieldToEdit":"field0","op":"+","constant":1}},{"x":113,"y":99,"type":"source","name":"source_1","out":"func_1","model":{"params":["1234",""],"distribution":"constant","udoFields":{"field0":{"type":"INT","distribution":"constant","params":["0",""],"boolBase":0}}}}]}';
+		doSimpleRun("Func_Addition", json);
+		console.log(QueueApp.models[2].stat);
+		markTest(QueueApp.models[2].stat["field0"].sum, 1, "Func_Addition");
+	</script>
+	
+
+
+<h4 id="Source_To_Reverser_To_Sink">Source to reverser to sink</h4>
+	<p id="Source_To_Reverser_To_Sink_p">
+	Source to reverser to sink.
+	</p>
+	<script>
+		markTest(null, "", "Source_To_Reverser_To_Sink");
+		var reverser = '{"x":3,"y":3,"type":"reverser","name":"reverser_1","out":"sink_1","model":null}'
+		var sink = '{"x":1,"y":1,"type":"sink","name":"sink_1","model":null}';
+		var source = '{"x":0,"y":0,"type":"source","name":"source_1","out":"reverser_1","model":{"params":[100,null],"distribution":"constant","udoFields":"{}"}}'
+		var json = '{"until":100,"seed":1234,"version":"1.1","udo":[],"udoName":"NAME","objects":['+reverser+','+ source +',' + sink +']}'
+		doSimpleRun("Source_To_Reverser_To_Sink", json);
+		var spawn = QueueApp.models[1].entity.spawn;
+		var got = QueueApp.models[0].entity.population.durationSeries.count();
+		markTest(spawn, got, "Source_To_Reverser_To_Sink");
+	</script>
+
+<h4 id="Source_To_Thermometer_To_Sink">Source To Thermometer To Sink</h4>
+	<p id="Source_To_Thermometer_To_Sink_p">
+	Source to thermometer, check that stats are there - and everything gets to sink.
+	</p>
+	<script>
+		markTest(null, "", "Source_To_Thermometer_To_Sink");
+		var thermometer = '{"x":3,"y":3,"type":"thermometer","name":"thermometer_1","out":"sink_1","model":null}'
+		var sink = '{"x":1,"y":1,"type":"sink","name":"sink_1","model":null}';
+		var source = '{"x":0,"y":0,"type":"source","name":"source_1","out":"thermometer_1","model":{"params":[100,null],"distribution":"constant","udoFields":"{}"}}'
+		var json = '{"until":100,"seed":1234,"version":"1.1","udo":[],"udoName":"NAME","objects":['+thermometer+','+ source +',' + sink +']}'
+		doSimpleRun("Source_To_Thermometer_To_Sink", json);
+		var spawn = QueueApp.models[1].entity.spawn;
+		var got = QueueApp.models[0].entity.population.durationSeries.count();
+		markTest(spawn, got, "Source_To_Thermometer_To_Sink");
+
+	</script>
+
+
+<h3>Cumulative Tests</h3>
+<p>All done, so write tests on the whole system</p>
+<h3>Clickables</h3>
+<p>Click to test</p>
+<h4 id="Download_JSON">Download JSON</h4>
+	<p id="Download_JSON_p">
+	make sure we can download a text file with the json.
+	</p>
+	<script>
+		var json = '{"until":100,"seed":1234,"version":"1.1","udo":[],"udoName":"NAME","objects":[]}'
+		QueueApp.init();
+		QueueApp.loadtext(json);
+		markTest(0, 0, "Download_JSON");
+	</script>
+	<a href="#" onclick='blueSimDownload("JSON", "blah");'>Download JSON</a>
+
+<h4 id="Download_Stats">Download Stats</h4>
+	<p id="Download_Stats_p">
+	Download "stats" from JSON
+	</p>
+	<script>
+		function statSetup(){
+		//Please don't let the server process things with a timer close to 0.  It breaks with the entity.time() doesn't exist error.
+			var udo = '{"A":{"type":"INT","distribution":"uniform","params":[1,5],"boolBase":0},"B":{"type":"FLOAT","distribution":"uniform","params":[10,20],"boolBase":0}}'
+			var udo2 = '{"B":{"type":"FLOAT","distribution":"uniform","params":[5,20],"boolBase":0}}'
+			var source = '{"x":0,"y":0,"type":"source","name":"source_1","out":"queue_1","model":{"params":[5,30],"distribution":"uniform","udoFields":'+udo+'}}'
+			var source2 = '{"x":0,"y":0,"type":"source","name":"source_2","out":"queue_1","model":{"params":[4,32],"distribution":"uniform","udoFields":'+udo2+'}}'
+			var serv = '{"x":3,"y":3,"type":"queue","name":"queue_1","out":"sink_1","model":{"nservers":15,"maxqlen":20,"distribution":"custom","params":["B",null]}}'
+			var sink = '{"x":1,"y":1,"type":"sink","name":"sink_1","model":null}'
+			return '{"until":80000,"seed":null,"version":"1.1","udo":[["A","INT"],["B","FLOAT"]],"udoName":"NAME","objects":['+source2+',' +serv+','+source+','+sink+']}'
+		}
+		markTest(0,0,"Download_Stats")
+	</script>
+	<a href="#" onclick='doSimpleRun("Download_Stats", statSetup());blueSimDownload("DATA", "BlueSim Results.txt");'>Download Stats</a>
+<h3>Compatibility with Frontend</h3>
+<h4 id="Check_Grabbing_From_Frontend_Source">Check Grabbing From Frontend Source</h4>
+	<p id="Check_Grabbing_From_Frontend_Source_p">
+	Check the pullFromForm function in global.js for a source model.
+	</p>
+	<script>
+		markTest(null, "", "Check_Grabbing_From_Frontend_Source");
+		var source = '{"x":0,"y":0,"type":"source","name":"source_1","model":{"params":[100,null],"distribution":"constant","udoFields":null}}'
+		var json = '{"until":100,"seed":1234,"version":"1.1","udo":[["A","INT"]],"udoName":"NAME","objects":['+source+']}'
+		QueueApp.init();
+		QueueApp.loadtext(json);
+		QueueApp.models[0].update();
+		QueueApp.models[0]._params = [["gaussian", 10, 20], ["constant", 1, null]];
+		pullFromForm(QueueApp.models[0]);
+		var str = QueueApp.stringify();
+		var udo = '"A":{"type":"INT","distribution":"constant","params":[1,null],"boolBase":0}';
+		var source = '{"x":0,"y":0,"type":"source","name":"source_1","model":{"params":[10,20],"distribution":"gaussian","udoFields":{'+udo+'}}}'
+		var json = '{"until":100,"seed":1234,"version":"1.1","udo":[["A","INT"]],"use_udo":true,"udoName":"NAME","objects":['+source+']}'
+		markTest(json, str, "Check_Grabbing_From_Frontend_Source");
+	</script>
+<h4 id="Check_Pushing_To_Frontend_Source">Check Pushing To Frontend Source</h4>
+	<p id="Check_Pushing_To_Frontend_Source_p">
+	Check the pushToForm function in global.js for a source model.
+	</p>
+	<script>
+		markTest(null, "", "Check_Pushing_To_Frontend_Source");
+		var udo = '"A":{"type":"INT","distribution":"constant","params":[1,null],"boolBase":0}';
+		var source = '{"x":0,"y":0,"type":"source","name":"source_1","model":{"params":[10,20],"distribution":"gaussian","udoFields":{'+udo+'}}}'
+		var json = '{"until":100,"seed":1234,"version":"1.1","udo":[["A","INT"]],"udoName":"NAME","objects":['+source+']}'
+		QueueApp.init();
+		QueueApp.loadtext(json);
+		QueueApp.models[0].update();
+		pushToForm(QueueApp.models[0]);
+
+		var _params = QueueApp.models[0]._params;
+		markTest(_params[0][0], "gaussian", "Check_Pushing_To_Frontend_Source") &&
+		markTest(_params[0][1], 10, "Check_Pushing_To_Frontend_Source") &&
+		markTest(_params[0][2], 20, "Check_Pushing_To_Frontend_Source") &&
+		markTest(_params[1][0], "constant", "Check_Pushing_To_Frontend_Source") &&
+		markTest(_params[1][1], 1, "Check_Pushing_To_Frontend_Source") &&
+		markTest(_params[1][2], null, "Check_Pushing_To_Frontend_Source");
+	</script>
+<h4 id="Frontend_EX_Single_Shot">Check Frontend Example "Single Shot"</h4>
+	<p id="Frontend_EX_Single_Shot_p">
+	Verification of Example imported from fix.html "Single Shot"
+	</p>
+	<script>
+	var json='{"until":10,"seed":1234,"version":"1.1","udo":[["A","INT"]],"use_udo":true,"udoName":"NAME","objects":[{"x":300,"y":150,"type":"source","name":"source_1","out":"sink_1","model":{"params":[11,null],"distribution":"constant","udoFields":{"A":{"type":"INT","distribution":"random","params":[null,null],"boolBase":0}}}},{"x":500,"y":150,"type":"sink","name":"sink_1","model":null}]}'
+	testJSON("Frontend_EX_Single_Shot",json, json);
+	</script>
+<h4 id="Frontend_EX_Plus_One">Check Frontend Example "Plus One"</h4>
+	<p id="Frontend_EX_Plus_One_p">
+	Verification of Example imported from fix.html "Plus One"
+	</p>
+	<script>
+	var json='{"until":1,"seed":1429935601902,"version":"1.1","udo":[["f","INT"]],"use_udo":true,"udoName":"Ping","objects":[{"x":461,"y":122,"type":"sink","name":"sink_1","model":null},{"x":319,"y":122,"type":"func","name":"func_1","out":"sink_1","model":{"fieldToEdit":"f","op":"+","constant":"1"}},{"x":208,"y":115,"type":"source","name":"zero","out":"func_1","model":{"params":["123",""],"distribution":"constant","udoFields":{"f":{"type":"INT","distribution":"constant","params":["0",""],"boolBase":0}}}}]}'
+	testJSON("Frontend_EX_Plus_One",json, json)
+	</script>
+<h4 id="Frontend_EX_Real_Numbers">Check Frontend Example "Real Numbers"</h4>
+	<p id="Frontend_EX_Real_Numbers_p">
+	Verification of Example imported from fix.html "Real Numbers"
+	</p>
+	<script>
+	var json='{"until":28800,"seed":1429997669042,"version":"1.1","udo":[["x","FLOAT"]],"use_udo":true,"udoName":"Ping","objects":[{"x":651,"y":265,"type":"sink","name":"Negatives","model":null},{"x":649,"y":152,"type":"sink","name":"Zero","model":null},{"x":652,"y":67,"type":"sink","name":"Positives","model":null},{"x":513,"y":160,"type":"splitfunc","name":"splitfunc_2","out":["Zero","Negatives"],"model":{"fieldToCheck":"x","prob":0.5,"op":">","constant":0}},{"x":430,"y":128,"type":"splitfunc","name":"splitfunc_1","out":["Positives","splitfunc_2"],"model":{"fieldToCheck":"x","prob":0.5,"op":">","constant":0}},{"x":327,"y":130,"type":"func","name":"Minus 1/2","out":"splitfunc_1","model":{"fieldToEdit":"x","op":"+","constant":0.5}},{"x":216,"y":132,"type":"source","name":"Real Numbers","out":"Minus 1/2","model":{"params":["1",""],"distribution":"constant","udoFields":{"x":{"type":"FLOAT","distribution":"random","params":["",""],"boolBase":0}}}}]}'
+	testJSON("Frontend_EX_Real_Numbers",json, json)
+	</script>
+<h4 id="Frontend_EX_Feedback_Loop_Incr">Check Frontend Example "Feedback Loop Increment"</h4>
+	<p id="Frontend_EX_Feedback_Loop_Incr_p">
+	Verification of Example imported from fix.html "Feedback Loop Increment"
+	</p>
+	<script>
+	var json='{"until":28800,"seed":1429985457094,"version":"1.1","udo":[["n","INT"]],"use_udo":true,"udoName":"Ping","objects":[{"x":540,"y":231,"type":"sink","name":"n==5","model":null},{"x":468,"y":33,"type":"reverser","name":"Feedback","out":"Measure","model":null},{"x":415,"y":175,"type":"splitfunc","name":"splitfunc_1","out":["Plus 1","n==5"],"model":{"fieldToCheck":"n","prob":0.5,"op":">","constant":"5"}},{"x":474,"y":136,"type":"func","name":"Plus 1","out":"Feedback","model":{"fieldToEdit":"n","op":"+","constant":"1"}},{"x":327,"y":170,"type":"thermometer","name":"Measure","out":"splitfunc_1","model":null},{"x":247,"y":171,"type":"source","name":"Zero","out":"Measure","model":{"params":["1",""],"distribution":"constant","udoFields":{"n":{"type":"INT","distribution":"constant","params":["0",""],"boolBase":0}}}}]}'
+	testJSON("Frontend_EX_Feedback_Loop_Incr",json, json)
+	</script>
+<h4 id="Frontend_EX_Feedback_Bank_Teller">Check Frontend Example "Bank Teller"</h4>
+	<p id="Frontend_EX_Feedback_Bank_Teller_p">
+	Verification of Example imported from fix.html "Bank Teller"
+	</p>
+	<script>
+	var json='{"until":28800,"seed":1429987056913,"version":"1.1","udo":[],"use_udo":false,"udoName":"Ping","objects":[{"x":499,"y":270,"type":"sink","name":"Leaving","model":null},{"x":341,"y":101,"type":"queue","name":"Tellers","out":"Leaving","model":{"nservers":"5","maxqlen":"10","distribution":"gaussian","params":["5","1"]}},{"x":213,"y":108,"type":"source","name":"Customers","out":"Tellers","model":{"params":["5",""],"distribution":"exponential","udoFields":{}}}]}'
+	testJSON("Frontend_EX_Feedback_Bank_Teller",json, json)
+	</script>
+	
+</body>
+</html>

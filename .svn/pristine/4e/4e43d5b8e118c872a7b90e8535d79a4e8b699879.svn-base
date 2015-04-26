@@ -1,0 +1,8 @@
+/* list of tuples (field name, field type) */
+LIST_OF_PARAMETERS = []
+
+/* name of object being instantiated in sources.. just superficial */
+NAME_OF_OBJECT = "Ping"
+
+/* map of distributions we will support, each points to the number of parameters it needs */
+LIST_OF_DISTRIBUTION = {gaussian: 2, exponential: 1, random: 0};

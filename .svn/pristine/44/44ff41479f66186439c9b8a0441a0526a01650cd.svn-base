@@ -1,0 +1,87 @@
+
+var entitiesToGraph = [];
+
+function setSimulationResults(){
+
+	entitiesToGraph = [];
+	getEntitiesToGraph();
+	clearForm();
+	if (USE_UDO){
+		createUDOResultForm();
+	} else{
+		createPingResultForm();
+	}
+
+}
+
+function getEntitiesToGraph(){
+	for (var i = 0; i < QueueApp.models.length;i++){
+		checkEntityToAdd(QueueApp.models[i]);
+	}
+}
+
+function checkEntityToAdd(model){
+
+	if (USE_UDO){
+		if (model.view.type != "splitter" || model.view.type != "func" || model.view.type != "reverser"){
+			entitiesToGraph.push(model.view.type);
+		}
+
+	} else {
+		if (model.view.type == "queue" || model.view.type == "sink"){
+			entitiesToGraph.push(model.view.type);
+
+		}
+	}
+}
+
+function clearForm(){
+
+	var resultsDiv = document.getElementById("graph_form_to_append");
+	resultsDiv.innerHTML = "";
+
+}
+
+function createUDOResultForm(){
+	console.log("create UDOform for : " + entitiesToGraph.length + " entities");
+
+	for (var i = 0;i < entitiesToGraph.length;i++){
+
+	}
+
+}
+
+function createPingResultForm(){
+	console.log("create Pingform for : " + entitiesToGraph.length + " entities");
+	var resultsDiv = document.getElementById("graph_form_to_append");
+	//document.getElementById("graph_form").style.dispay = "block";
+
+	var a = $("#graph_form");
+    QueueApp.form_view = this.view;
+    a.show().position({
+        at: "center center",
+        my: "left top"
+    })
+	for (var i = 0;i < entitiesToGraph.length;i++){
+			
+		var newCheck = document.createElement("div");
+		
+		 newCheck.innerHTML =  
+			'<div class="onoffswitch" class="settings_form">'+
+				'<table>' +
+				'<tr><td><input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="myonoffswitch_'+i+'" checked>'+
+			    '<label class="onoffswitch-label" for="myonoffswitch_'+i+'">'+
+			        '<span class="onoffswitch-inner"></span>'+
+			        '<span class="onoffswitch-switch"></span>'+
+			    '</label></td>' +
+			    '<td><td><font size="3">' + entitiesToGraph[i] + '</font><hr></td></tr>'+
+			'</div>';
+        
+		resultsDiv.appendChild(newCheck);
+
+	}
+}
+
+function appendUDOFields(){
+
+}

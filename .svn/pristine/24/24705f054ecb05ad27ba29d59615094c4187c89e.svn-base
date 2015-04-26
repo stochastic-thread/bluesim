@@ -1,0 +1,90 @@
+body {
+    font - size: 62.5 % ;
+    background - image: url('../images/background.gif')
+}
+h1 {
+    color: #1c94c4;margin-bottom:0}p# subtitle {
+            font - size: 1.2e m;
+            text - transform: uppercase;
+            color: #1c94c4}p.info{margin-left:30px;font-size:1.2em}# like_buttons {
+                position: absolute;top: 30 px;left: 900 px;padding: 4 px;border - bottom: solid 4 px# f7b64a
+            }#
+            banner {
+                background - image: url('../images/banner.png');
+                padding: 1 px;
+                padding - left: 30 px;
+                border - radius: 10 px;
+                width: 830 px
+            }#
+            content {
+                border: 8 px solid# bbb;border - radius: 10 px;background: #ddd;width: 820 px;padding: 10 px
+            }#
+            main_layout {
+                width: 1080 px
+            }#
+            info {
+                border: 4 px solid# ffd478;background: #faf6aa;width: 200 px;margin - bottom: 50 px;position: absolute;top: 80 px;left: 880 px;padding: 5 px;font - size: 1.1e m
+            }#
+            googlead {
+                width: 200 px;margin - bottom: 50 px;position: absolute;top: 400 px;left: 880 px
+            }
+            h1 {
+                font - color: red
+            }#
+            accordion {
+                float: left;width: 200 px;height: 400 px;margin - right: 10 px
+            }#
+            toolbar {
+                padding: 10 px 4 px
+            }#
+            progressbar {
+                width: 400 px;float: left
+            }
+            label {
+                font - size: 1.2e m
+            }
+            input[type = text] {
+                float: right;font - size: 1.2e m;height: 1.4e m;width: 70 px
+            }#
+            results {
+                background: #ddd;width: 810 px
+            }.stats {
+                display: inline - block;border: 1 px solid# faf6aa;padding: .4e m;margin: .4e m;background: #f7d68a
+            }.stats_table {
+                border: 1 px;font - size: 1.2e m;border - collapse: collapse;background - color: #faf6aa
+            }#
+            server_stats, #sink_stats {
+                display: none
+            }.settings_form {
+                padding: 10 px;background - color: white;width: 220 px; - moz - box - shadow: 5 px 5 px 5 px# ccc; - webkit - box - shadow: 5 px 5 px 5 px# ccc;box - shadow: 5 px 5 px 5 px# ccc
+            }.settings_form_close {
+                position: absolute;top: -20 px;right: -200 px;width: 20 px;height: 20 px
+            }.inline {
+                display: inline
+            }.shift - down {
+                margin - bottom: -5 px
+            }
+            strong {
+                color: #f7b64a
+            }#
+            sample_models {
+                padding: 5 px
+            }.about_text {
+                display: none
+            }.navigation {
+                list - style - type: none;
+                padding - left: 0;
+                margin - left: 0
+            }.navigation a {
+                text - decoration: none;
+                display: block;
+                padding: 2 px;
+                border - bottom: dotted 1 px black
+            }.navigation a: hover {
+                background - color: #f7b64a;
+                color: #fff;
+                font - weight: bold;
+                border - left: solid 5 px black
+            }.navigation a: link a: visited {
+                color: #f7b64a
+            }

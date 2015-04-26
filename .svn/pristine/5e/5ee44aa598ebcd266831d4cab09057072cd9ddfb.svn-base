@@ -1,0 +1,64 @@
+// settings
+
+
+function runAnimation() {
+	
+	console.log("ANIMATION: started");
+
+	// preferences
+	var STROKE_DASH = "10.50 10.50";
+	var STROKE_COLOR = "red";  		// we can also randomize colors
+	var STROKE_WIDTH = "8";
+	var SPEED = 50;
+	var DURATION = 50;
+	var DIRECTION = -1;				// (<-- -1) (--> 1) 		
+
+
+	var paths = [];
+
+	var svg = document.getElementById("canvas").children[0];			// assign id to svg
+	svg.id = "svg";
+	
+	var pathIds = 0;													// assign ids to paths
+	for (var i = 0; i < svg.children.length; i++) {
+		var currElmt = svg.children[i];
+		
+		if (currElmt.nodeName.toLowerCase() === "path" 
+			&& currElmt.hasAttribute("stroke-width")) {					// filtering elements in svg - we only want paths
+			var strokeVal = currElmt.getAttribute("stroke-width");		// this is the only way to identify paths
+			if (strokeVal === "3") {
+				// console.log(currElmt);
+				currElmt.id = "path" + pathIds++;
+				currElmt.style['stroke-dasharray']	= STROKE_DASH;
+				currElmt.style['stroke'] = STROKE_COLOR;
+				currElmt.style['stroke-width'] = STROKE_WIDTH;
+				paths.push(currElmt);
+			}
+		}
+	}
+
+	// var c = 1;                     										
+
+	function myLoop (ind, c) {        									//  create a loop function
+	   setTimeout(function () {    										//  call a 100ms setTimeout when the loop is called
+	      	// var x = "" + i + "" ;
+			// console.log("DEBUG: " + x);
+		    paths[ind].style['stroke-dashoffset'] = c * DIRECTION;    	//  code here
+	      	// c++;                     									//  increment counter
+	      	if (c < DURATION) {           								//  if counter < 10, call the loop function
+	        	myLoop(ind, c + 1);             								//  ..  again which will trigger another 
+	      	} else {
+	      		if (paths[ind]["id"] === "path"+(paths.length-1)) {
+	      			console.log("ANIMATION: ended");	
+	      			// build graphs from here
+	      		}
+	      	}                       
+	   }, SPEED)														//  ..  setTimeout()
+	}
+
+	for (var i = 0; i < paths.length; i++) {
+		c = 1;															//  set your counter to 1
+		myLoop(i, c);                      				//  start the loop
+	}
+}
+

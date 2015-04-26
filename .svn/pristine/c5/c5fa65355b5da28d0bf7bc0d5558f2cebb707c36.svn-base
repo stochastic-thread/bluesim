@@ -1,0 +1,134 @@
+
+function ServerModel(a) {
+    this.view = a;
+    this.nservers = 1;
+	this.distribution = "random";
+	this.params = [null, null];
+    this.maxqlen = -1;
+    this.dest = this.entity = null;
+    this.statTable = $("#server_stats").clone().attr("id", a.name);
+    this.statTable.find("h2").text(a.name);
+    $("#results").append(this.statTable);
+    this.stat = [
+        this.statTable.find("#arrival"), 
+        this.statTable.find("#drop"), 
+        this.statTable.find("#sutil"), 
+        this.statTable.find("#qtime"), 
+        this.statTable.find("#stime"), 
+        this.statTable.find("#qsize"), 
+        this.statTable.find("#ssize"), 
+        this.statTable.find("#qtimed"), 
+        this.statTable.find("#stimed"),
+        this.statTable.find("#qsized"), 
+        this.statTable.find("#ssized")
+    ];
+    this.view.image.attr({
+        title: "Service rate = " + this.mu
+    })
+}
+
+ServerModel.prototype.jsonify = function() {
+    return {
+        nservers: this.nservers,
+        mu: this.mu,
+        maxqlen: this.maxqlen
+    }
+};
+
+ServerModel.prototype.start = function() {
+    this.entity = QueueApp.sim.addEntity(ServerEntity, this.nservers, this.mu, this.maxqlen)
+};
+
+ServerModel.prototype.connect = function() {
+    this.entity.dest = this.dest ? this.dest.entity : null
+};
+
+ServerModel.prototype.showSettings = function() {
+    var a = $("#server_form");
+    QueueApp.form_view = this.view;
+	a.find("#server_form_distribution").val(this.distribution);
+	if(this.params.length == 2){
+		a.find("#server_form_param1").val(this.params[0])
+		a.find("#server_form_param2").val(this.params[1])
+	}
+	else if(this.params.length == 1){
+		a.find("#server_form_param1").val(this.params[0])
+	}
+    a.find("#queue_length").val(this.maxqlen);
+    a.show().position({
+        of: $(this.view.image.node),
+        at: "center center",
+        my: "left top"
+    })
+};
+
+ServerModel.prototype.saveSettings = function() {
+    var a = $("#server_form");
+	this.distribution = a.find("#server_form_distribution").val();
+	this.params = [];
+	this.params.push(a.find("#server_form_param1").val());
+	this.params.push(a.find("#server_form_param2").val());
+	switch(this.distribution){
+		case "exponential":
+			this.params = [this.params[0], null]
+			break
+		case "random":
+			this.params = [null, null];
+			break
+		case "gaussian":
+			this.params = [this.params[0], this.params[1]];
+			break
+	}
+    this.maxqlen = a.find("#queue_length").val();
+    this.view.image.attr({
+        title: "Service rate = " + this.mu
+    })
+};
+
+ServerModel.prototype.showStats = function() {
+    var a = this.entity.facility,
+        b = a.queueStats().durationSeries,
+        c = a.queueStats().sizeSeries,
+        d = a.systemStats().durationSeries,
+        e = a.systemStats().sizeSeries,
+        a = a.usage() / QueueApp.sim.time() * 100;
+    this.stat[0].text(this.entity.arrived);
+    this.stat[1].text(this.entity.dropped);
+    this.stat[2].text(a.toFixed(1) + "%");
+    this.stat[3].text(b.average().toFixed(3));
+    this.stat[4].text(d.average().toFixed(3));
+    this.stat[5].text(c.average().toFixed(3));
+    this.stat[6].text(e.average().toFixed(3));
+    this.stat[7].text(b.deviation().toFixed(3));
+    this.stat[8].text(d.deviation().toFixed(3));
+    this.stat[9].text(c.deviation().toFixed(3));
+    this.stat[10].text(e.deviation().toFixed(3));
+    this.view.showCounters(b.count(), d.count())
+
+    //call animation manager funtion
+    var value = a.toFixed(1);
+    stat_animation_manager(this.view.image.node.id, "queue", value);
+    
+};
+
+ServerModel.prototype.unlink = function() {
+    this.statTable.remove();
+    this.stat = this.view = null
+};
+
+var ServerEntity = {
+    start: function(a, b, c) {
+		//(Name, Facility type, number of servers, maximum number in queue)
+        this.facility = new Sim.Facility("queue", Sim.Facility.FCFS, a, c);
+        this.arrived = this.dropped = 0
+    },
+    onMessage: function(sender, message) {
+        this.arrived++;
+        this.useFacility(this.facility, randDist(this.distribution, this.params, QueueApp.random)).done(this.completed, this, message)
+    },
+    completed: function(message) {
+        this.callbackMessage === -1 ? this.dropped++ : this.dest && this.send(message, 0, this.dest)
+    }
+};
+
+

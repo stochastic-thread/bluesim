@@ -1,0 +1,158 @@
+.rotateRight {
+	transform: rotate(90deg);
+	-ms-transform: rotate(90deg); /* IE 9 */
+	-webkit-transform: rotate(90deg); /* Safari and Chrome */
+	-o-transform: rotate(90deg); /* Opera */
+	-moz-transform: rotate(90deg); /* Firefox */
+				
+	/* if you want to do this move with animate use transition */
+	transition: .5s;
+	-moz-transition: .5s; /* Firefox 4 */
+	-webkit-transition: .5s; /* Safari and Chrome */
+	-o-transition: .5s; /* Opera */	
+}
+.rotateLeft {
+	transform: rotate(-90deg);
+	-ms-transform: rotate(-90deg); /* IE 9 */
+	-webkit-transform: rotate(-90deg); /* Safari and Chrome */
+	-o-transform: rotate(-90deg); /* Opera */
+	-moz-transform: rotate(-90deg); /* Firefox */
+				
+	/* if you want to do this move with animate use transition */
+	transition: .5s;
+	-moz-transition: .5s; /* Firefox 4 */
+	-webkit-transition: .5s; /* Safari and Chrome */
+	-o-transition: .5s; /* Opera */	
+}
+
+#title {
+	display: none;
+}
+
+#login-screen {
+	position: fixed;
+	height: 50px;
+	width: 500px;
+	top: 50%;
+	left: 50%;
+	margin-top: -25px;
+	margin-left: -250px;
+}
+	#login-screen form { text-align: center; }
+		#login-screen input[type=text], input[type=password] {
+			color: #aaa;
+			box-shadow: 0px 0px 3px #929292 inset;
+			padding: 8px 10px;
+			font-size: 14px;
+			margin: 5px;
+			width: 218px;
+			border-radius: 2px; 
+		}
+		#login-go {
+			margin: 0px 5px;
+			width: 80px; 
+		}
+		#login-err { margin-top: 20px; color: #df3939; font-size: 14px; }
+		
+#settings-screen {
+	display: none;
+	position: fixed;
+	width: 240px;
+	padding: 20px 40px;
+	background: #eee;
+	border-right: 1px solid #ccc;
+	overflow-y: scroll;
+}
+	#settings-screen h1 {
+		font-size: 24px;
+		font-weight: normal;
+		margin: 10px 0px 20px;
+		cursor: pointer;
+	}
+		#settings-screen h1#qn-settings img {
+			display: inline-block;
+			margin-left: 15px;
+		}
+		#settings-screen h1#more-settings img {
+			display: inline-block;
+			margin-left: 15px;
+		}
+	#settings-screen h2 { font-weight: bold; margin-bottom: 10px; }
+	#settings-screen input[type=text] {
+		box-shadow: 0px 0px 3px #929292 inset;
+		padding: 8px 10px;
+		font-size: 14px;
+		border-radius: 2px; 
+	}
+	#settings-screen #set-seed { width: 85px; color: black; }
+	#settings-screen #new-seed { margin-left: 10px; width: 105px; }
+	#settings-screen input[type=checkbox] {
+		margin-left: 10px;
+		margin-right: 5px;
+	}
+	#settings-screen .topic {
+		border-top: 1px solid #ccc;
+		border-left: 1px solid #ccc;
+		border-right: 1px solid #ccc;
+		padding: 5px 10px;
+		cursor: pointer;
+	}
+		#settings-screen .topic:first-of-type {
+			border-top-left-radius: 2px;
+			border-top-right-radius: 2px;
+		}
+		#settings-screen .topic:last-of-type {
+			border-bottom-left-radius: 2px;
+			border-bottom-right-radius: 2px;
+			border-bottom: 1px solid #ccc;
+		}
+	#set-nqns { width: 85px; margin-right: 10px; }
+	#set-time { width: 85px; }
+	#load-test {
+		width: 105px;
+		display: inline-block;
+	}
+	#save {
+		width: 105px;
+		display: inline-block;
+		margin-left: 10px;
+	}
+	#toggle-test, #toggle-ans {
+		width: 105px;
+		cursor: pointer;
+		border-radius: 2px;
+		font-weight: bold;
+		color: white;
+	}
+	#reset-attempt { width: 85px; color: #aaa; }
+	#reset { width: 105px; }
+	
+/*test screen shift*/
+
+#qn-no {
+	top: 80px;
+	left: 340px;
+}
+#qn-text {
+	top: 80px;
+	left: 410px;
+	width: 600px;
+}
+svg { 
+	margin-left: -300px;
+}
+#question-nav {
+	width: 100%;
+	left: 150px;
+	bottom: 0px;
+}
+#info {
+	top: 80px;
+	right: 40px;
+}
+	#submit-test {
+		margin-top: 0px;
+	}
+#result-screen {
+	margin-left: -100px;
+}

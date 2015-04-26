@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>bluesim</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <link href='http://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+</head>
+<body>
+    <style type="text/css">
+        * {
+            font-family: Lato;
+            font-size: small;
+        }
+
+        #bigheader {
+            font-size: 22px;
+            text-align: center;
+        }
+        #header {
+            font-size: 16px;
+            text-align: center;
+        }
+
+        #microheader {
+            font-size: 12px;
+            text-align: center;
+        }
+
+        #outer-div {
+            position: absolute;
+            right: 2%;
+            left: 2%;
+            top: 2%;
+            bottom: 2%;
+        }
+
+        #structure_panel {
+            max-height: 165px ;
+            overflow-y:auto;
+        }
+
+        #algo_panel {
+            max-height: 165px ;
+            overflow-y:auto;
+        }
+    </style>
+
+    <div class="panel panel-default" id = "outer-div">
+        <div class="panel-heading" id="bigheader">bluesim</div>
+        <div class="panel-body">
+            <div class="row">
+                <div class="col-md-2">
+                    <div class="panel panel-default">
+                        <div class="panel-heading" id="header">Structures</div>
+                        <div class="panel-body" id="structure_panel">
+                            <div class="panel panel-default">
+                                <div class="panel-heading" id="microheader">List</div>
+                                <div class="panel-body">
+                                    <img src="assets/structures/list.png" alt="List" height=50>
+                                </div>
+                            </div>
+
+                            <div class="panel panel-default">
+                                <div class="panel-heading" id="microheader">Graph</div>
+                                <div class="panel-body">
+                                    <img src="assets/structures/graph.png" alt="Graph" height=50>
+                                </div>
+                            </div>
+
+                            <div class="panel panel-default">
+                                <div class="panel-heading" id="microheader">Queue</div>
+                                <div class="panel-body">
+                                    <img src="assets/structures/queue.png" alt="Queue" height=50>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+              </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-2">
+                    <div class="panel panel-default">
+                        <div class="panel-heading" id="header">Algorithms</div>
+                        <div class="panel-body" id="algo_panel">
+                            <div class="panel panel-default">
+                                <div class="panel-heading" id="microheader">Bubble Sort</div>
+                                <div class="panel-body">
+                                    <img src="assets/structures/list.png" alt="List" height=50>
+                                </div>
+                            </div>
+
+                            <div class="panel panel-default">
+                                <div class="panel-heading" id="microheader">Two's Complement</div>
+                                <div class="panel-body">
+                                    <img src="assets/structures/graph.png" alt="Graph" height=50>
+                                </div>
+                            </div>
+
+                            <div class="panel panel-default">
+                                <div class="panel-heading" id="microheader">DFS</div>
+                                <div class="panel-body">
+                                    <img src="assets/structures/queue.png" alt="Queue" height=50>
+                                </div>
+                            </div>
+
+                            <div class="panel panel-default">
+                                <div class="panel-heading" id="microheader">BFS</div>
+                                <div class="panel-body">
+                                    <img src="assets/structures/queue.png" alt="Queue" height=50>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+              </div>
+            </div>
+
+        </div>
+    </div>
+</body>
+</html>

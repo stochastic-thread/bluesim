@@ -1,0 +1,46 @@
+function ReverserModel(a) {
+    this.view = a;
+    this.dest = null;
+}
+
+ReverserModel.prototype.jsonify = function() {
+    return null;
+};
+
+ReverserModel.prototype.start = function() {
+    this.entity = QueueApp.sim.addEntity(ReverserEntity);
+};
+
+ReverserModel.prototype.connect = function() {
+    this.entity.dest = this.dest ? this.dest.entity : null;
+};
+
+ReverserModel.prototype.showSettings = function() {
+    var a = $("#reverser_form");
+    QueueApp.form_view = this.view;
+    a.show().position({
+        of: $(this.view.image.node),
+        at: "center center",
+        my: "left top"
+    })
+};
+
+ReverserModel.prototype.saveSettings = function() {};
+
+ReverserModel.prototype.unlink = function() {
+    this.view = null;
+};
+
+ReverserModel.prototype.showStats = function() {
+
+    //call animation manager funtion
+    //var value = a.toFixed(1);
+    stat_animation_manager(this.view.image.node.id, "reverser", 100);
+};
+
+var ReverserEntity = {
+    start: function() {},
+    onMessage: function(sender, message) {
+        this.send(message, 0, this.dest);
+    }
+};

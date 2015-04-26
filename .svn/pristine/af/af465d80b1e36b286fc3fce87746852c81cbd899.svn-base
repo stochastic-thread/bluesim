@@ -1,0 +1,188 @@
+/* only allowed types */
+LIST_OF_TYPES = ["INT", "FLOAT", "BOOLEAN"];
+/* list of tuples (field name, field type) */
+LIST_OF_PARAMETERS = []
+
+UPDATE_SOURCE = true;
+
+USE_UDO = false;
+
+/* name of object being instantiated in sources.. just superficial */
+NAME_OF_OBJECT = "Ping"
+
+/* map of distributions we will support, each points to the number of parameters it needs */
+LIST_OF_DISTRIBUTIONS = {
+	gamma: 2,
+	pareto: 1,
+	weibull: 2,
+	constant: 1, 
+	gaussian: 2, 
+	exponential: 1, 
+	random: 0
+};
+
+/* link to a button to allow the user to download work */
+function blueSimDownload(request, filename, str){
+	var pom = document.createElement('a');
+	switch(request){
+		case "JSON":
+			text = QueueApp.stringify();
+			break;
+		case "DATA":
+			/* traverse models in QueueApp and gather stats */
+			text = QueueApp.saveStatString();
+			break;
+	}
+	pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+	pom.setAttribute('download', filename);
+
+	pom.style.display = 'none';
+	document.body.appendChild(pom);
+
+	pom.click();
+
+	document.body.removeChild(pom);
+}
+
+/* on the fly random number distributor */
+function randDist(distString, paramArray, randObject){
+	switch(distString){
+		case "gaussian":
+			return randObject.normal(paramArray[0], paramArray[1]);
+		case "gamma":
+			return randObject.gamma(paramArray[0],paramArray[1]);
+		case "weibull":
+			return randObject.weibull(paramArray[0],paramArray[1]);
+		case "uniform":
+			return randObject.uniform(paramArray[0], paramArray[1]);
+		case "exponential":
+			return randObject.exponential(paramArray[0]);
+		case "pareto":
+			return randObject.pareto(paramArray[0]);
+		case "constant":
+			return paramArray[0];
+		
+		default:
+			return randObject.random();
+	}
+	console.log("randDist had a problem");
+}
+
+/* adapter functions so that frontend can communicate with backend */
+function pullFromForm(model){
+	model.distribution = model._params[0][0];
+	model.params = [model._params[0][1], model._params[0][2]];
+	/* is the model a source entity */
+	if(model.udoFields){
+		/* frontend promises that the _params array is in the order of LIST_OF_PARAMETERS */
+		for(var i = 0; i < LIST_OF_PARAMETERS.length; i++){
+			model.udoFields[LIST_OF_PARAMETERS[i][0]].distribution = model._params[i+1][0];
+			model.udoFields[LIST_OF_PARAMETERS[i][0]].params = [model._params[i+1][1], model._params[i+1][2]];
+		}
+	}
+}
+
+/* adapter function so that backend can communicate with frontend */
+function pushToForm(model){
+	model._params = [[model.distribution, model.params[0], model.params[1]]];
+	if(model.udoFields){
+		for(f in model.udoFields){
+			model._params.push([model.udoFields[f].distribution, model.udoFields[f].params[0], model.udoFields[f].params[1]]);
+		}
+	}
+}
+
+/* form creation */
+function createForm(model){
+
+    //check created so that we don't update the form over and over
+    if(this.updateForm == null){
+        populateForm(model);
+        this.updateForm = true;
+    }
+}
+
+//clearing the form to be updated again form new UDO information.
+// this function is very primitive at the moment
+function clearAndUpdateForm(){
+    var a = document.getElementById("source_form_to_append");
+    a.innerHTML = "";
+
+    populateForm();
+}
+
+//fills form with functionand parameters based on UDO if 
+function populateForm(model){
+    var parentForm = document.getElementById("source_form_to_append");
+   // parentForm.innerHTML = "sfgdfgd";
+
+    //use LIST_OF_PARMATERS.length for size
+   // alert("size of LIST_OF_PARAMETERS : " + LIST_OF_PARAMETERS.length);
+
+	for (var i = 0; i < model._params.length; i++){
+
+		var newDiv = document.createElement('div');
+		newDiv.id = "source_table_" + i;
+	
+		//use to display information to user for how to fill out source form use UDO field from LIST_OF_PARAMTERS[i-1][0]; instead of i
+		var user_message = "Choose distribution function for ";
+		newDiv.innerHTML = '<table>'  +
+		'<tr>' +
+		   '<td><label for="source_form_distribution">' + user_message + '</label></td>' +
+		   '<td><select name="source_dropdown_'+ i + '" id="dropdown_' + i + '" onChange="dropper('+ i +')">' + 
+					   '<option value="gaussian">Gaussian</option>' + 
+					   '<option value="exponential">Exponential</option>' +
+					   '<option value="pareto">Pareto</option>' +
+					   '<option value="random">Random</option>' +
+					   '<option value="gamma">Gamma</option>' +
+					   '<option value="weibull">Weibull</option>' +
+					   '<option value="constant">Constant</option>' +
+				   '</select>' + 
+			   '</td></tr>' +
+		   '<tr id="source_table_'+ i + '_param1">' +
+			   '<td><label for="source_form_param1">Parameter 1</label></td>' +
+			   '<td><input type="text" name="source_form_param1" id="source_form_param1" value="" class="text ui-widget-content ui-corner-all"></td></tr>' +
+		   '<tr id="source_table_'+ i + '_param2">' +
+			   '<td><label for="source_form_param2">Parameter 2</label></td>' +
+			   '<td><input type="text" name="source_form_param2" id="source_form_param2" value="" class="text ui-widget-content ui-corner-all"></td></tr>' + 
+	   '</table>';
+	   
+		parentForm.appendChild(newDiv);
+	}
+}
+	
+
+function dropper(index){
+
+    var e = document.getElementById("dropdown_" + index);
+    var dropOption = e.options[e.selectedIndex].value;
+
+    if (dropOption == "exponential" || dropOption == "constant" || 
+            dropOption == "pareto"){ // param1 shows but param2 hidden
+        $("#source_table_" + index + "_param1").show(); 
+        $("#source_table_" + index + "_param2").hide(); 
+
+    } else if (dropOption == "random"){ // param1 and param2 both are hidden
+        $("#source_table_" + index + "_param2").hide();
+        $("#source_table_" + index + "_param1").hide();
+      
+    } else {
+        //for gaussian, weibull and gamma
+        $("#source_table_" + index + "_param1").show();  // Both parameters shows up
+        $("#source_table_" + index + "_param2").show();
+    }
+
+}
+
+function reset(i){
+    
+    a = $("#source_form");
+    a.find("#dropdown_" + i).val("gaussian");
+    b = $("#source_table_"+i)
+    $("#source_table_" + i + "_param1").show();
+    $("#source_table_" + i + "_param2").show()
+    b.find("#source_form_param1").val("").show();
+    b.find("#source_form_param2").val("").show();
+}
+
+

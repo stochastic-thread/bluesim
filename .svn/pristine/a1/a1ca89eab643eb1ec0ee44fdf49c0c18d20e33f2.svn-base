@@ -1,0 +1,122 @@
+@charset "utf-8";
+
+/*all action pullout (input) stuff here*/
+
+.build { bottom: 173px; }
+	#build-input input {
+		width: 200px;
+		padding: 8px;
+	}
+	#build-go p { padding: 8px 8px 7px; }
+	#build-err { padding: 8px 0px 7px; }
+
+.search { bottom: 146px; }
+	#search-input input {
+		width: 200px;
+		padding: 6px 8px 5px;
+	}
+	#search-go p { padding: 5px 8px; }		
+	#search-err { padding: 5px 0px; }
+
+.lcp { bottom: 119px; }
+	#lcp-err { padding: 5px 0px; }
+
+.lrs { bottom: 92px; }
+	#lrs-err { padding: 5px 0px; }
+
+.lcs { bottom: 60px; }
+	#lcs-input input {
+		width: 78px;
+		padding: 8px;
+	}
+	#lcs-go p { padding: 8px 8px 7px; }
+	#lcs-err { padding: 8px 0px 7px; }
+
+/*tutorial dialogs*/
+#suffixarray-tutorial-1 {
+	top: 60px;
+	left: 60px;
+	width: 250px;
+}
+#suffixarray-tutorial-2 {
+	bottom: 225px;
+	left: 60px;
+	width: 220px;
+}
+	#suffixarray-tutorial-2:before {
+		top: 100%;
+		left: 20%;
+		border-top-color: black;
+		margin-left: -10px;
+	}
+#suffixarray-tutorial-3 {
+	top: 400px;
+	left: 50%;
+	width: 200px;
+	margin-left: -110px;
+}
+	#suffixarray-tutorial-3:before {
+		bottom: 100%;
+		left: 50%;
+		border-bottom-color: black;
+		margin-left: -10px;
+	}
+#suffixarray-tutorial-4 {
+	bottom: 335px;
+	right: 150px;
+	width: 200px;
+}
+	#suffixarray-tutorial-4:before {
+		top: 100%;
+		left: 20%;
+		border-top-color: black;
+		margin-left: -10px;
+	}
+#suffixarray-tutorial-5 {
+	bottom: 275px;
+	right: 170px;
+	width: 180px;
+}
+	#suffixarray-tutorial-5:before {
+		top: 100%;
+		left: 20%;
+		border-top-color: black;
+		margin-left: -10px;
+	}
+#suffixarray-tutorial-6 {
+	bottom: 70px;
+	left: 50%;
+	width: 220px;
+	margin-left: -120px;
+}
+	#suffixarray-tutorial-6:before {
+		top: 100%;
+		left: 50%;
+		border-top-color: black;
+		margin-left: -10px;
+	}
+#suffixarray-tutorial-7 {
+	top: 70px;
+	right: 60px;
+	width: 150px;
+}
+	#suffixarray-tutorial-7:before {
+		bottom: 100%;
+		left: 50%;
+		border-bottom-color: black;
+		margin-left: -10px;
+	}
+
+/*others*/
+.background {
+  fill: none;
+  pointer-events: all;
+}
+
+.lcs_first {
+	fill: #2ebbd1;
+}
+
+.lcs_second {
+	fill: #52bc69;
+}

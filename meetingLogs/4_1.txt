@@ -1,0 +1,6 @@
+April 1, 2015
+Bluesim meeting
+
+divided up into programming teams in efforts to prepare a more elaborate prototype for Purtilo (before class tomorrow)
+we have a backend team working to expand the sim.js exposure in the UI
+we have a front end team working with D3 in attempt to make animations real time

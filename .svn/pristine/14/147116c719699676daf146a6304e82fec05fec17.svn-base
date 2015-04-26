@@ -1,0 +1,163 @@
+
+function SinkModel(a) {
+    this.view = a;
+    this.entity = null;
+    this.udoStats = []; //udoStats.name, total, min, max
+    this.statTable = $("#sink_stats").clone().attr("id", a.name);
+    this.statTable.find("h2").text(a.name);
+    $("#results").append(this.statTable);
+    this.stat = [this.statTable.find("#depart"), this.statTable.find("#pop"), this.statTable.find("#popd"), this.statTable.find("#stay"), this.statTable.find("#stayd")]
+	this.backStats = []
+}
+
+SinkModel.prototype.jsonify = function() {
+    return null
+};
+
+SinkModel.prototype.start = function() {
+    this.entity = QueueApp.sim.addEntity(SinkEntity ,this.udoStats)
+    //initialize UDO field statistics
+    for(i = 0; i < LIST_OF_PARAMETERS.length; i++){
+		this.udoStats.push({
+			name:LIST_OF_PARAMETERS[i][0],
+			total:0,
+			max:null,
+			min:null
+		})
+		/*
+    	this.udoStats[i].name = LIST_OF_PARAMETERS[i][0];
+    	this.udoStats[i].total = 0;
+    	this.udoStats[i].max = null;
+    	this.udoStats[i].min = null;
+		*/
+    }
+};
+
+SinkModel.prototype.connect = function() {};
+
+SinkModel.prototype.showSettings = function() {
+    var a = $("#sink_form");
+    QueueApp.form_view = this.view;
+    a.show().position({
+        of: $(this.view.image.node),
+        at: "center center",
+        my: "left top"
+    })
+};
+
+SinkModel.prototype.saveSettings = function() {};
+
+SinkModel.prototype.showStats = function() {
+    var a = this.entity.population;
+    this.stat[0].text(a.durationSeries.count());
+    this.stat[1].text(a.sizeSeries.average().toFixed(3));
+    this.stat[2].text(a.sizeSeries.deviation().toFixed(3));
+    this.stat[3].text(a.durationSeries.average().toFixed(3));
+    this.stat[4].text(a.durationSeries.deviation().toFixed(3));
+	
+	this.backStats.push(["Stay Duration: ", a.durationSeries.count()]);
+	this.backStats.push(["Average Size: ", a.sizeSeries.average()]);
+	this.backStats.push(["Size Deviation: ", a.sizeSeries.deviation()]);
+	this.backStats.push(["Average Stay: ", a.durationSeries.average()]);
+	this.backStats.push(["Stay Deviation: ", a.durationSeries.deviation()]);
+	
+    this.view.showCounters(a.durationSeries.count(), NaN)
+    
+    if (USE_UDO){
+        //dynamically create information from 
+        //have to do for each UDO? change conditions LIST_OF_PARAMETERS.length or udostats.length
+        //need to check if we have created a table for this yet and update if so
+        
+       if (this.statTable.find("#udo_stat_table").val() == undefined){
+
+    //call animation manager function
+        
+        
+
+        for (var i = 0;i < 3;i++){
+
+            var newDiv = document.createElement('div');
+            newDiv.id = "udo_stat_table";
+
+            newDiv.innerHTML = ('<table id="test" class="stats_table" border="1">' + 
+            '<tbody>' + 
+            '<tr><td>Name</td><td id="name">0</td><td>-</td></tr>' + 
+            '<tr><td>Population</td><td id="total">0.000</td><td id="popd">NaN</td></tr>' + 
+            '<tr><td>stay duration</td><td id="min">0.000</td><td id="stayd">NaN</td></tr>' + 
+            '<tr><td>stay duration</td><td id="max">0.000</td><td id="stayd">NaN</td></tr>' + 
+        '</tbody></table>'); 
+
+            this.statTable.append(newDiv);
+        }
+
+
+    }
+    } else {
+        //destroy all the things that we may added
+        this.statsTable.find("#udo_stat_table");
+    }
+
+    //call animation manager function
+    var value = a.durationSeries.average().toFixed(3);
+    stat_animation_manager(this.view.image.node.id, "sink", value);
+};
+
+
+SinkModel.prototype.saveStats = function(){
+	tempstr = ""
+	if(this.backStats){
+		for(i = this.backStats.length - 1; i >= 0 ; i--){
+		tempstr = tempstr + "  " + this.backStats[i][0] + this.backStats[i][1] + "\n"
+		}
+	}
+	return tempstr
+};
+
+SinkModel.prototype.unlink = function() {
+    this.statTable.remove();
+    this.stat = this.view = null
+};
+
+var SinkEntity = {
+    start: function(a) {
+        this.population = new Sim.Population
+		this.udoStats = a
+		//debug
+		this.statTrack = []
+    },
+    onMessage: function(sender, message) {
+		//message must be a time value
+        message || (message.timer = 0);
+        this.population.enter(message.timer);
+        this.population.leave(message.timer, this.time());
+        
+        //Update UDO field statistics
+        for(i = 0; i < LIST_OF_PARAMETERS.length; i++){
+
+        	this.udoStats[i].total += message.fields[LIST_OF_PARAMETERS[i][0]];
+
+        	if(this.udoStats[i].max == null){
+        		this.udoStats[i].max = message.fields[LIST_OF_PARAMETERS[i][0]];
+        		this.udoStats[i].min = message.fields[LIST_OF_PARAMETERS[i][0]];
+        	} 
+        	else if(message[LIST_OF_PARAMETERS[i][0]] > this.udoStats[i].max) {
+        		this.udoStats[i].max = message.fields[LIST_OF_PARAMETERS[i][0]];
+        	}
+        	else if(message[LIST_OF_PARAMETERS[i][0]] > this.udoStats[i].min) {
+        		this.udoStats[i].min = message.fields[LIST_OF_PARAMETERS[i][0]];
+        	}
+        }
+
+		
+		//debug
+		for(var property in message.fields){
+			var instProp = []
+			if(message.fields.hasOwnProperty(property)){
+				instProp.push(message.fields[property])
+            }
+			this.statTrack.push(instProp)
+		}
+    }
+};
+
+

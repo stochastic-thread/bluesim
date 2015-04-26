@@ -1,0 +1,843 @@
+<html itemscope="" itemtype="http://schema.org/Product"><head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    
+    <meta itemprop="name" content="BlueSim :: Simulation Builder">
+    <!--
+    <meta itemprop="description" content="M/M/1 Queuing Simulator">
+    <meta property="og:title" content="M/M/1 Queuing Simulator">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="http://www.simjs.com/queuing">
+    <meta property="og:site_name" content="BlueSim">
+    -->
+    <title>BLUESIM</title>
+
+    <link href="images/favicon.ico" rel="icon" type="image/x-icon" />
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js" type="text/javascript" charset="utf-8"></script>
+
+    <script src="lib/d3v3.js" type="text/javascript" charset="utf-8"></script>
+    <script src="lib/raphael-min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="sim-0.26.js" type="text/javascript" charset="utf-8"></script>
+    <script src="global.js" type="text/javascript" charset="utf-8"></script>
+    <script src="queuing-min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="image-view.js" type="text/javascript" charset="utf-8"></script>
+    <script src="animations/stat_animation_manager.js" type="text/javascript" charset="utf-8"></script>
+    <script src="animations/path_animator.js" type="text/javascript" charset="utf-8"></script>
+
+    <script src="entities/data.js" type="text/javascript" charset="utf-8"></script>
+    <script src="entities/sink.js" type="text/javascript" charset="utf-8"></script>
+    <script src="entities/source.js" type="text/javascript" charset="utf-8"></script>
+    <script src="entities/server.js" type="text/javascript" charset="utf-8"></script>
+    <script src="entities/reverser.js" type="text/javascript" charset="utf-8"></script>
+    <script src="entities/splitfunction.js" type="text/javascript" charset="utf-8"></script>
+    <script src="entities/thermo.js" type="text/javascript" charset="utf-8"></script>   
+    <script src="entities/func.js" type="text/javascript" charset="utf-8"></script>
+    <script src="graph/simresults.js" type="text/javascript" charset="utf-8"></script>
+    <script src="udo-manager.js" type="text/javascript" charset="utf-8"></script>
+    
+    <script src="gm.js" type="text/javascript" charset="utf-8"></script>
+    <script src="ui_helper.js" type="text/javascript" charset="utf-8"></script>
+	<script src="statman.js" type="text/javascript" charset="utf-8"></script>
+    <!-- added new stylesheet -->
+    <link rel="stylesheet" href="css/toolbar.css" type="text/css" media="screen" title="no title" charset="utf-8">
+    <link rel="stylesheet" href="css/canvas_parent.css" type="text/css" media="screen" title="no title" charset="utf-8">
+    <link rel="stylesheet" href="css/on_off_switch.css" type="text/css" media="screen" title="no title" charset="utf-8">
+    
+    <link rel="stylesheet" href="css/queuing.css" type="text/css" media="screen" title="no title" charset="utf-8">
+    <link rel="stylesheet" href="css/jquery-ui-1.8.16.custom.css" type="text/css" media="screen" title="no title" charset="utf-8">
+    
+    <script type="text/javascript" charset="utf-8">
+        console.log(QueueApp.size.width);
+        console.log(QueueApp.size.height);
+
+
+        $(function () {
+            (function() {
+                var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+                po.src = 'https://apis.google.com/js/plusone.js';
+                var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+                })();
+            
+            $('#accordion').accordion({autoHeight: false});
+            $('#about_this_model').accordion({collapsible: true, autoHeight: false}).hide();
+            
+            
+            $('#sample_models a').click(function (event) {
+                var id = $(this).attr('id');
+                var name = $(this).text();
+                var model = MODELS[id];
+                if (!model) return;
+
+                QueueApp.reset(true);
+                QueueApp.loadtext(model.model);
+                
+                $('#about_this_model a').text('About this model [' + name + ']');
+                var a = $('#about_this_model');
+                a.show();
+                if (a.accordion('option', 'active') !== 0) {
+                    a.accordion('option', 'active', 0);
+                }
+
+                $('.about_text').hide();
+                $('#about_' + id).show();
+                return false;
+            });
+            
+            QueueApp.init();
+
+    });
+        
+    </script>
+
+    <script>
+        var MODELS = {
+            single_shot:'{"until":10,"seed":1234,"version":"1.1","udo":[["A","INT"]],"udoName":"NAME","objects":[ {"x":300,"y":150,"type":"source","name":"source_1","out":"sink_1","model":{"params":[11,null],"distribution":"constant","udoFields": {"A":{"type":"INT","distribution":"random","params":[null,null],"boolBase":0}}}}, {"x":500,"y":150,"type":"sink","name":"sink_1","model":null}]}',
+			plus_one:'{"until":1,"seed":1429935601902,"version":"1.1","udo":[["f","INT"]],"use_udo":true,"udoName":"Ping","objects":[{"x":461,"y":122,"type":"sink","name":"sink_1","model":null},{"x":319,"y":122,"type":"func","name":"func_1","out":"sink_1","model":{"fieldToEdit":"f","funcString":"@f+1"}},{"x":208,"y":115,"type":"source","name":"zero","out":"func_1","model":{"params":["123",""],"distribution":"constant","udoFields":{"f":{"type":"INT","distribution":"constant","params":["0",""],"boolBase":0}}}}]}',
+			real_numbers:'{"until":28800,"seed":1429997669042,"version":"1.1","udo":[["x","FLOAT"]],"use_udo":true,"udoName":"Ping","objects":[{"x":651,"y":265,"type":"sink","name":"Negatives","model":null},{"x":649,"y":152,"type":"sink","name":"Zero","model":null},{"x":652,"y":67,"type":"sink","name":"Positives","model":null},{"x":513,"y":160,"type":"splitfunc","name":"splitfunc_2","out":["Zero","Negatives"],"model":{"funct":"@x>0","fieldToCheck":"x","prob":0.5}},{"x":430,"y":128,"type":"splitfunc","name":"splitfunc_1","out":["Positives","splitfunc_2"],"model":{"funct":"@x>0","fieldToCheck":"x","prob":0.5}},{"x":327,"y":130,"type":"func","name":"Minus 1/2","out":"splitfunc_1","model":{"fieldToEdit":"x","funcString":"@x+.5"}},{"x":216,"y":132,"type":"source","name":"Real Numbers","out":"Minus 1/2","model":{"params":["1",""],"distribution":"constant","udoFields":{"x":{"type":"FLOAT","distribution":"random","params":["",""],"boolBase":0}}}}]}',
+			feedback_loop_increment:'{"until":28800,"seed":1429985457094,"version":"1.1","udo":[["n","INT"]],"use_udo":true,"udoName":"Ping","objects":[{"x":540,"y":231,"type":"sink","name":"n==5","model":null},{"x":468,"y":33,"type":"reverser","name":"Feedback","out":"Measure","model":null},{"x":415,"y":175,"type":"splitfunc","name":"splitfunc_1","out":["Plus 1","n==5"],"model":{"funct":"n>5","fieldToCheck":"n","prob":0.5}},{"x":474,"y":136,"type":"func","name":"Plus 1","out":"Feedback","model":{"fieldToEdit":"n","funcString":"@n+1"}},{"x":327,"y":170,"type":"thermometer","name":"Measure","out":"splitfunc_1","model":null},{"x":247,"y":171,"type":"source","name":"Zero","out":"Measure","model":{"params":["1",""],"distribution":"constant","udoFields":{"n":{"type":"INT","distribution":"constant","params":["0",""],"boolBase":0}}}}]}',
+			bank_teller:'{"until":28800,"seed":1429987056913,"version":"1.1","udo":[],"use_udo":false,"udoName":"Ping","objects":[{"x":499,"y":270,"type":"sink","name":"Leaving","model":null},{"x":341,"y":101,"type":"queue","name":"Tellers","out":"Leaving","model":{"nservers":"5","maxqlen":"10","distribution":"gaussian","params":["5","1"]}},{"x":213,"y":108,"type":"source","name":"Customers","out":"Tellers","model":{"params":["5",""],"distribution":"exponential","udoFields":{}}}]}'
+        }
+    </script>
+
+</head>
+
+<body data-twttr-rendered="true">
+    
+<!--     <div id="banner">
+        <h1>Simulation Builder</h1>
+        <p id="subtitle">Powered by <a href="http://www.simjs.com">Sim.JS</a> - A Discrete Event Simulation library in JavaScript</p>
+    </div> -->
+
+    
+
+    <div class="panel panel-default" id = "outer-div">
+        <div class="panel-heading" id="bigheader"> 
+            <!-- <img src="images/logo.png"> -->
+            <!-- <i class="fa fa-cogs fa-5x" style="color:#1456F6"></i> -->
+            <img src="images/BLUESIM_FINAL2.png" style="height:5%">
+        </div>
+        <div class="panel-body">
+
+    
+            <div id="main_layout">
+
+
+                <div id="examples">
+                    <table style="background-color: white; width: 30em" class="table table-striped table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Examples</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><button class="btn btn-primary btn-small" type="button" onclick="QueueApp.reset(1); QueueApp.loadtext(MODELS['single_shot']);">Single Shot</button></td>
+                                <td>Only one integer field is created and sent to the sink</td>
+                            </tr>
+							<tr>
+                                <td><button class="btn btn-primary btn-small" type="button" onclick="QueueApp.reset(1); QueueApp.loadtext(MODELS['plus_one']);">Plus One</button></td>
+                                <td>Create a zero and then add one to it</td>
+							</tr>
+							<tr>
+                                <td><button class="btn btn-primary btn-small" type="button" onclick="QueueApp.reset(1); QueueApp.loadtext(MODELS['real_numbers']);">Real Numbers</button></td>
+                                <td>Filter out numbers [-.5, .5) as negative, positive, or zero</td>
+							</tr>
+							<tr>
+                                <td><button class="btn btn-primary btn-small" type="button" onclick="QueueApp.reset(1); QueueApp.loadtext(MODELS['feedback_loop_increment']);">Feedback Loop Increment Integer</button></td>
+                                <td>Demonstrate a simple feedback loop where we update data until it meets a criterion (n == 5)</td>
+							</tr>
+							<tr>
+                                <td><button class="btn btn-primary btn-small" type="button" onclick="QueueApp.reset(1); QueueApp.loadtext(MODELS['bank_teller']);">Bank Teller</button></td>
+                                <td>Simple bank teller example with one queue (adopted from original demo)</td>
+							</tr>
+                        </tbody>
+                    </table>
+                </div> <!-- id="examples" -->
+                <div id="toolbar_div">
+                    <span id="toolbar">  <!-- class="ui-widget-header ui-corner-all"> -->
+
+                         <div id="progressbar" class="ui-progressbar ui-widget ui-widget-content ui-corner-all"     role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="      display: none;"> 
+                            <div class="ui-progressbar-value ui-widget-header ui-corner-left" style="display:   none; width: 0%;">
+                            </div>
+                        </div>
+
+                        <span id="file_ops" class="ui-buttonset" >
+                            <button id="new_file" class="ui-button ui-widget ui-state-default ui-button-icon-only ui-corner-left" role="button" aria-disabled="false" title="New Canvas"><span class="ui-button-icon-primary ui-icon ui-icon-document"></span><span class="ui-button-text">New Canvas</span></button>
+                            <button id="load_file" class="ui-button ui-widget ui-state-default ui-button-icon-only" role="button" aria-disabled="false" title="Load a file"><span class="ui-button-icon-primary ui-icon ui-icon-folder-open"></span><span class="ui-button-text">Load a file</span></button>
+
+                            <button id="download_json" class="ui-button ui-widget ui-state-default ui-button-icon-only" role="button" aria-disabled="false" title="Download JSON"><span class="ui-button-icon-primary ui-icon ui-icon-arrowthickstop-1-s"></span><span class="ui-button-text">Save to file</span></button>
+                        </span>
+                            <button id="save_file" class="ui-button ui-widget ui-state-default ui-button-icon-only ui-corner-right" role="button" aria-disabled="false" title="Save to file"><span class="ui-button-icon-primary ui-icon ui-icon-disk"></span><span class="ui-button-text">Save to file</span></button>
+                        </span>
+
+                        <span id="sim_play_ops" class="ui-buttonset" style="display: none;">
+                            <button id="pause_sim" class="ui-button ui-widget ui-state-default ui-button-icon-only ui-corner-left" role="button" aria-disabled="false" title="Pause"><span class="ui-button-icon-primary ui-icon ui-icon-pause"></span><span class="ui-button-text">Pause</span></button>
+                            <button id="stop_sim" class="ui-button ui-widget ui-state-default ui-button-icon-only ui-corner-right" role="button" aria-disabled="false" title="Stop"><span class="ui-button-icon-primary ui-icon ui-icon-stop"></span><span class="ui-button-text">Stop</span></button>
+                        </span>
+                        <span id="sim_ops" class="ui-buttonset">
+
+                             <button id="add_udo" class="ui-button ui-widget ui-state-deefaul ui-button-text-icon-primary ui-corner-right" role="button" aria-disabled="false"><span class="ui-button-text">Add UDO</span></button>
+
+                            <button id="play_sim" class="ui-button ui-widget ui-state-deefaul ui-button-text-icon-primary ui-corner-left" role="button" aria-disabled="false"><span class="ui-button-icon-primary ui-icon ui-icon-play"></span><span class="ui-button-text">Simulate</span></button>
+
+                            <button id="config_sim" class="ui-button ui-widget ui-state-deefaul ui-button-text-icon-primary ui-corner-right" role="button" aria-disabled="false"><span class="ui-button-icon-primary ui-icon ui-icon-clock"></span><span id="config_label" class="ui-button-text">8:00 hours</span></button>
+
+                        </span>
+                    </span>
+                </div> <!-- id="toolbar_div" -->
+
+
+            </div>
+    </div>
+            <div id="canvas_parent">
+                <span>
+                    <div id="canvas"></div>
+                </span>
+
+                <div id="accordion" class="ui-accordion ui-widget ui-helper-reset ui-accordion-icons" role="tablist">
+                    <h3 class="ui-accordion-header ui-helper-reset ui-state-default ui-state-active ui-corner-top" role="tab" aria-expanded="true" aria-selected="true" tabindex="0"><span class="ui-icon ui-icon-triangle-1-s"></span><a href="#"><font size="4">Instructions</font></a></h3>
+                     <div class="ui-accordion-content ui-helper-reset ui-widget-content ui-corner-bottom ui-accordion-content-active" role="tabpanel">
+                        <p style="font-size: 200%;"><strong>Adding objects.</strong> 
+                                 Insert instructions</p>
+                        <!-- Drag n' drop 
+                            <img src="images/server.png" class="inline shift-down" width="20%">
+                            (queues),
+                            <img src="images/customers.png" class="inline shift-down" width="10%">
+                            (traffic source), 
+                            <img src="images/door_out.png" class="inline shift-down" width="10%">
+                            (traffic sink), or 
+                            <img src="images/splitter.png" class="inline shift-down" width="10%"> 
+                            (splitter) from left panel into canvas</p>
+
+                        <p><strong>Connecting.</strong> 
+
+                        Drag <img src="images/orange-arrow.gif" class="inline" width="8%">
+                            and drop over the destination object</p>
+                        <p><strong>Properties, Disconnect and Delete.</strong> Double-click</p> -->
+                    </div>
+
+                    <h3 class="ui-accordion-header ui-helper-reset ui-state-default ui-corner-all" role="tab" aria-expanded="false" aria-selected="false" tabindex="-1"><span class="ui-icon ui-icon-triangle-1-e"></span><a href="#"><font size="3">Example Models and Exercises</font></a></h3>
+
+                    <div id="sample_models" class="ui-accordion-content ui-helper-reset ui-widget-content ui-corner-bottom" role="tabpanel" style="display: none;">
+                        <ul class="navigation">
+                            <li><a href="#" id="model_mm1">Bank Teller</a></li>
+                            <li><a href="#" id="model_mm1feedback">College Pathways</a></li>
+                            <li><a href="#" id="model_backforth">Traffic Lights</a></li>
+                            <li><a href="#" id="model_waterfall">Predator-Prey</a></li>
+                        </ul>
+                    </div>
+
+                <!-- <h3 class="ui-accordion-header ui-helper-reset ui-state-default ui-corner-all" role="tab" aria-expanded="false" aria-selected="false" tabindex="-1"><span class="ui-icon ui-icon-triangle-1-e"></span><a href="#"><font size="4">Contact us</font></a></h3>
+                <div class="ui-accordion-content ui-helper-reset ui-widget-content ui-corner-bottom" role="tabpanel" style="display: none;">
+                    <p>Contact us at contact.simjs@gmail.com</p>
+                </div> -->
+            </div>
+
+            </div>
+
+
+
+            <!-- 'About this model' -->
+            <div id="about_this_model" class="ui-accordion ui-widget ui-helper-reset ui-accordion-icons" role="tablist" style="display: initial;">
+                <h3 class="ui-accordion-header ui-helper-reset ui-state-default ui-state-active ui-corner-top" role="tab" aria-expanded="true" aria-selected="true" tabindex="0"><span class="ui-icon ui-icon-triangle-1-s"></span><a href="#">About this model</a></h3>
+                <div class="ui-accordion-content ui-helper-reset ui-widget-content ui-corner-bottom ui-accordion-content-active" role="tabpanel">
+                    <div id="about_model_mm1" class="about_text">
+                        The very basic queuing system with one Server (exponential service time with rate λ and infinite queue) and one Source (Poisson traffic with rate μ). 
+                        <p>This model is simple enough to analytically determine the steady state properties of the system (in the following, ρ = λ / μ):</p>
+                        <ul>
+                            <li>Server utilization -- fraction of time server was busy = λ / μ</li>
+                            <li>Average time spent by customers waiting in queue = ρ / (μ - λ)</li>
+                            <li>Average time spent by customers in obtaining service (time spent waiting in queue + time spent get service from server) = 1 / (μ - λ)</li>
+                            <li>Average length of queue = ρ * ρ / (1 - ρ)</li>
+                            <li>Average number of customer inside the system (being serviced or waiting in queue) = ρ / (1 - ρ) </li>
+                        </ul>
+                    <p>Try out different values of λ and μ and see what happens!</p>
+                    
+                    <p><strong>Exercises:</strong> Think what should happen before you try these. What will happen when arrival rate is same as service rate (that is, λ = μ)? When arrival rate is higher? Keep the service rate constant and change arrival rate such that average queue length is about 5. Try again for queue length 50. What can we infer?</p>
+                    </div>
+
+                    <div id="about_model_mm1feedback" class="about_text">
+                        <p><strong>Life at DMV:</strong> Alice is a fastidious clerk whose responsibility is to review the forms and approve them. She takes exponential time to review the forms, AND she ends up rejecting a fraction of application (because they were not complete). The rejected customers immediately fix their application and join the queue again <em>at the end</em>. We would like to know what is the average time taken for customers to get their applications approved, and how many customers are within the system.</p>
+                        
+                        <p><strong>Modeling:</strong> Alice is modeled as a M/M/1 service. The output from the service is fed into a <em>splitter</em> that loops back a fraction of traffic back to queue and the remaining exit the system. The <em>sink</em> measures: (a) Population -- the number of customers within the system, and (b) Stay duration -- average time that customers (who exited) spent within the system.</p>
+                        
+                        <p><strong>Exercises:</strong> What happens when Alice rejects 0%, 10%, 50%, 90% of applications? Which is better for customers: Alice who rejects 10% applications, or Bob who works twice as fast as Alice but rejects twice as many applications? </p>
+                    </div>
+
+                    <div id="about_model_backforth" class="about_text">
+                        <p><strong>The joys of government office:</strong> Alice was a good employee (see 'Feedback'), Chuck and Dave are not. They work in one government office and are responsible for approving loan applications. Customers line up for Chuck's desk first, but Chuck approves only some of them. The remaining he sends over to Dave. Dave also approves only some of the customers, and send the remaining back to Chuck. We would like to know what is the average time taken for customers to get their applications approved, and how many customers are within the system.</p>
+                        
+                        <p><strong>Modeling:</strong> Both Chuck and Dave are represented as M/M/1 services. The output of both services is fed into a '<em>splitter</em>', which loops back a fraction of traffic to the other service, while the remaining exit the system. The '<em>sink</em>' records the statistics we are interested in.</p>
+                    
+                        <p><strong>Exercises:</strong> What should be the difference between: when Chuck rejects 30% and Dave rejects 70% applications, versus Chuck rejecting 70% and Dave 30%? See if you can intuitively predict before running the simulation. </p>
+                    </div>
+
+                    <div id="about_model_waterfall" class="about_text">
+                        <p>Real life example? We don't know.. it just looks pretty! Seriously though, this is a "network of queues" where output of one M/M/1 service feeds the next service. This is an important problem in <strong>assembly line productions</strong> where we would like to study the impact on one slow service on the overall throughput of the system.</p>
+                        
+                        <p>In the above scenario, all services have identical rates. Try to vary them and see what happens.</p>
+                
+                        <p><strong>Exercises:</strong></p> 
+                        <ul>
+                            <li>The location of slow server? Say there are three servers with identical rates, and one with a slower rate. Where would you put this server -- first? last? See if you can intuitively predict, before you simulate all four combinations.</li>
+                            <li>Say the four servers have rate 1, 2, 3 and 4. How would you arrange them -- ascending? descending? See if you can intuitively predict, before you run the simulations.</li>
+                        </ul>
+                    </div>
+
+                    <div id="about_model_compile" class="about_text">
+                        <p><strong>Life of [un]happy programmer:</strong> Programmers write code; something fails (aka bugs) and they have to fix it again. The good code is sent to testers who reject problematic code and send it back to programmers. The programmers work on code from three sources: original code coming from their managers, code that was rejected in the coding stage, and the code that was rejected in the testing stage. We would like to know what is the rate at which code is shipped by our software firm?</p>
+                        
+                        <p><strong>Modeling:</strong> Both the programming and testing stages are represented by M/M/1 queues ('queue_1' and 'queue_2', resp). Output from programming service is fed to splitter, which sends a fraction (the good code) to testers, and loops back the remaining back to programmers. The testers, similarly, send a fraction of traffic (the good code) for shipping (the sink) and remaining back to the programmers. The '<em>sink</em>' records the statistics we are interested in.</p>
+                        
+                        <p><strong>Exercises:</strong> Do you agree with "its better to find problems sooner than later"? Try out these two cases: 10% code rejected after queue_1 and 30% after queue_2, and vice versa. </p>
+                    </div>
+
+                    <div id="about_model_staytillend" class="about_text">
+                        <p><strong>Only the best for our customers:</strong> Acme corporation sells paper cups. Before shipping, Acme runs each paper cup through a four-stage Quality Assurance pipeline to make sure there are no leaks, the cups have correct size, color and strength. In each stage, only the accepted cups are passed on to the next stage of testing. The testing takes exponential time and the arrivals from the factory is Poisson. We would like to know how much time is spent in QA, and if we can speed it up.</p>
+                    
+                        <p><strong>Modeling:</strong> Each of the four stages is represented as M/M/1 servers. All servers are connected to '<em>spiltters</em>' which reject a fraction of output, and send the remaining to the next server or shipping. The sinks tell us what how much time was cumulatively spent after each testing stage.</p>
+                        
+                        <p><strong>Exercises:</strong></p> 
+                        <ul>
+                            <li>Suppose the four stages have defect rate of 10%, 20%, 30% and 40%. How would you organize these stages: ascending defect rates or descending defect rates? Why?</li>
+                            <li>Suppose there is a stage that takes much longer time than other stages but results in much less defects? Where would you place this stage -- first or last? How about when it produced highest defect rates also? Did the simulation results matched your intuitions?</li>
+                        </ul>
+                    </div>
+                    
+                    <div id="about_model_freeway" class="about_text">
+                        <p><strong>On a busy highway:</strong> Life is usual at the freeway: cars enter and cars leave. The freeway has four segments, each modeled as M/M/1 queue (why? because we can!). At each segments, some cars arrive and some leave. We would like to know steady state probabilities of overall throughput and the time that cars spend in the freeway.</p>
+                        
+                        <p><strong>Exercises:</strong> Reason intuitively first on what should happen before you try these cases: (a) one segment has very high input and output rate, (b) one segment is the "bottleneck" (has very high service rate), (c) freeway exit rate is same, lower or higher than entrance rates.</p>
+                    </div>
+
+
+                    <div id="about_model_winner" class="about_text">
+                        <p><strong>And the trophy goes to __:</strong> We have a competition is progress and we are looking at the semi-finals and the final stages. Competitors arrive in the semi-finals stages, some lose and fall out from competition. The winners proceed to final stage where they come out as winners or runner-ups. This 'pyramidical' model is different from most of the others, which were 'linear'. We would like to know how much time is spent by contestants in this competition.</p>
+                        
+                        <p><strong>Exercises:</strong> What will be impact on overall statistics if one semi-final stage takes a long time and has higher rejection rate? What about the other three combinations of service rate and rejection rate?</p>
+                    </div>
+                </div>
+            </div> <!-- id="about_this_model" -->
+
+            <div id="results">
+
+            </div>
+
+        </div> 
+
+        <!-- id="content" -->
+
+        <!--<div id="info">
+            <p><strong>About Queuing Network Simulator</strong></p>
+            
+            <p>We bring the power of Discrete Event Simulation and Web technologies for teaching and learning Queuing Theory and Queuing Networks. </p>
+            
+            <p>Complex networks of M/M/1 queues can be modeled and simulated easily with this web-based simulator. The simulator runs a complete discrete event simulation to generate the statistics of queues and systems.</p> 
+                
+            <p style="color:#1c94c4">Try out the example models and exercises, or experiment with your own concoctions!</p>
+
+            <p>*Coming soon: closed loops queue, multi-server queues and much more.</p>
+        </div> --> <!-- id="info" -->
+
+    </div> <!-- id="main_layout" -->
+	<svg id="visualize" width="1000" height="500">
+
+	</svg><!-- nicolas, id="visualize"-->
+
+
+
+    <!-- Dialogs. These are all hidden -->
+
+    <div id="server_stats" class="stats">
+        <h2>Server 1</h2>
+        <table class="stats_table" border="1">
+            <tbody><tr><th>Metric</th> <th>Mean</th><th>Std Dev</th></tr>
+            <tr><td>Arrivals</td><td id="arrival">-</td><td>-</td></tr>
+            <tr><td>Dropped</td><td id="drop">-</td><td>-</td></tr>
+            <tr><td>Server Utilization</td><td id="sutil">-</td><td>-</td></tr>
+            <tr><td>Time spent in queue</td><td id="qtime">-</td><td id="qtimed">-</td></tr>
+            <tr><td>Time spent in system</td><td id="stime">-</td><td id="stimed">-</td></tr>
+            <tr><td>Length of queue</td><td id="qsize">-</td><td id="qsized">-</td></tr>
+            <tr><td>Customers in system</td><td id="ssize">-</td><td id="ssized">-</td></tr>
+        </tbody></table>
+    </div>
+
+    <div id="sink_stats" class="stats">
+        <h2>Sink</h2>
+        <table class="stats_table" border="1">
+            <tbody><tr><th>Metric</th> <th>Mean</th><th>Std Dev</th></tr>
+            <tr><td>Departures</td><td id="depart">-</td><td>-</td></tr>
+            <tr><td>Population</td><td id="pop">-</td><td id="popd">-</td></tr>
+            <tr><td>Stay duration</td><td id="stay">-</td><td id="stayd">-</td></tr>
+        </tbody></table>
+    </div>
+
+    <div id="simulation_dialog" title="Simulation Properties" class="settings_form" style="display: none;">
+        <button id="simulation_dialog_close" class="settings_form_close ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only" role="button" aria-disabled="false" title=""><span class="ui-button-icon-primary ui-icon ui-icon-close"></span><span class="ui-button-text"></span></button>
+        <table>
+            <tbody><tr><td><label for="sim_until">Simulation duration</label>
+                <select id="time_selector" class="text ui-widget-content ui-corner-all" onChange="QueueApp.updateSettings();">
+                    <option>hours</option>
+                    <option>mins</option>
+                    <option>secs</option>
+                </select>
+            </td>
+            <td><input type="text" name="sim_until" class="text ui-widget-content ui-corner-all" value="5000" id="sim_until"></td></tr>
+            <tr><td><label for="sim_seed">Random generation seed</label>
+
+            </td>
+            <td><input type="text" name="sim_seed" class="text ui-widget-content ui-corner-all" value="null" id="sim_seed"></td></tr>
+        </tbody></table>
+        <hr>
+        <button id="simulation_dialog_save" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Apply</span></button>
+    </div>
+
+
+    <div id="server_form" class="settings_form" style="display: none; position: absolute;">
+        <button id="server_form_close" class="settings_form_close ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only" role="button" aria-disabled="false" title=""><span class="ui-button-icon-primary ui-icon ui-icon-close"></span><span class="ui-button-text"></span></button></br>
+        <table>
+                <tr>
+                    <td><label for="server_name">Name</label></td>
+                    <td><input type="text" name="serever_name" id="server_name" value="" class="text ui-widget-content ui-corner-all"></td>
+                </tr>
+        </table>
+        <table>
+            <tr>
+                <td><input id="use_udo_button" type="radio" class="big" name="tobe" value="use" onClick="checkRadioButtonServer()" disabled><font size="3">UDO</font>
+                <input id="use_function_button" type="radio" class="big" name="tobe" value="disable" checked onClick="checkRadioButtonServer()"><font size="3">Function</font></td>
+                <td><select name="server_dropdown_1" id="server_dropdown_1" class="text ui-widget-content ui-corner-all" onChange="serverDropper()">
+                            <option id="server_op1" value="gaussian">Gaussian</option>
+                            <option id="server_op2" value="exponential">Exponential</option>
+                            <option id="server_op3" value="pareto">Pareto</option>
+                            <option id="server_op4" value="random">Random</option>
+                            <option id="server_op5" value="gamma">Gamma</option>
+                            <option id="server_op6" value="weibull">Weibull</option>
+                            <option id="server_op7"  value="constant">Constant</option>
+                            <option id="server_udo_0"  value=""></option>
+                            <option id="server_udo_1"  value=""></option>
+                            <option id="server_udo_2"  value=""></option>
+                            <option id="server_udo_3"  value=""></option>
+                            <option id="server_udo_4"  value=""></option>
+
+                    </select>
+                </td> 
+            </tr>
+            <tr id="server_param_tr1">
+                <td><label for="queue_length" >Parameter 1</label></td>
+                <td><input type="text" name="server_param1" value="" id="server_param1" class="text ui-widget-content ui-corner-all"></td>
+            </tr>
+            <tr id="server_param_tr2">
+                <td><label for="queue_length">Parameter 2</label></td>
+                <td><input type="text" name="server_param2" value="" id="server_param2" class="text ui-widget-content ui-corner-all"></td>
+            </tr>
+            <tr>
+                <td><label for="queue_length">Max Queue Length<br>(-1 for infinite queue)</label></td>
+                <td><input type="text" name="queue_length" value="-1" id="server_queue_length" class="text ui-widget-content ui-corner-all"></td>
+            </tr>
+            <tr>
+                <td><label for="num_servers">Number of Servers<br></label></td>
+                <td><input type="text" name="num_servers" value="1" id="num_servers" class="text ui-widget-content ui-corner-all"></td>
+            </tr>    
+        </table>
+        <hr>
+        <button id="server_form_delete" class="settings_form_delete ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" role="button" aria-disabled="false"><span class="ui-button-icon-primary ui-icon ui-icon-trash"></span><span class="ui-button-text">Delete</span></button>
+        <button id="server_form_disconnect" class="settings_form_disconnect ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Disconnect</span></button>
+        <button id="server_form_save" class="settings_form_save ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Apply</span></button>
+    </div>
+
+<!-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
+
+
+    <div id="graph_form" class="settings_form" style="display: none; position: absolute;">
+        <button id="graph_form_close" class="settings_form_close ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only" role="button" aria-disabled="false" title=""><span class="ui-button-icon-primary ui-icon ui-icon-close"></span><span class="ui-button-text"></span></button></br>
+        <div id="graph_form_to_append">
+        </div>
+    </div>
+
+<!-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->    
+
+    <div id="source_form" title="Source Properties" class="settings_form" style="display: none; position: absolute;">
+        <button id="source_form_close" class="settings_form_close ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only"  role="button" aria-disabled="false" title=""><span class="ui-button-icon-primary ui-icon ui-icon-close"></span><span class="ui-button-text"></span><b></b></button></br>
+         <div id="source_form_name_div">
+            <table>
+                <tr>
+                    <td><label for="source_name">Name</label></td>
+                    <td><input type="text" name="source_name" id="source_name" value="" class="text ui-widget-content ui-corner-all"></td>
+                </tr>
+            </table>
+        </div>
+        <div id="source_form_to_append">
+        </div>
+        <hr>
+        <button id="source_form_delete" class="settings_form_delete ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" role="button" aria-disabled="false"><span class="ui-button-icon-primary ui-icon ui-icon-trash"></span><span class="ui-button-text">Delete</span></button>
+        <button id="source_form_disconnect" class="settings_form_disconnect ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Disconnect</span></button>
+        <button id="source_form_save" class="settings_form_save ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Apply</span></button>
+    </div>
+
+    <div id="sink_form" class="settings_form" style="display: none; position: absolute;">
+        <button id="sink_form_close" class="settings_form_close ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only" role="button" aria-disabled="false" title=""><span class="ui-button-icon-primary ui-icon ui-icon-close"></span><span class="ui-button-text"></span></button></br>
+        <table>
+            <tr>
+                <td><label for="sink_name">Name</label></td>
+                <td><input type="text" name="sink_name" id="sink_name" value="" class="text ui-widget-content ui-corner-all"></td>
+            </tr>
+        </table>
+        <hr>
+        <button id="sink_form_delete" class="settings_form_delete ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" role="button" aria-disabled="false"><span class="ui-button-icon-primary ui-icon ui-icon-trash"></span><span class="ui-button-text">Delete</span></button>
+        <button id="sink_form_save" class="settings_form_save ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Apply</span></button>
+    </div>
+
+    <div id="thermo_form" class="settings_form" style="display: none; position: absolute;">
+        <button id="thermo_form_close" class="settings_form_close ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only" role="button" aria-disabled="false" title=""><span class="ui-button-icon-primary ui-icon ui-icon-close"></span><span class="ui-button-text"></span></button></br>
+        <table>
+            <tr>
+                <td><label for="thermo_name">Name</label></td>
+                <td><input type="text" name="thermo_name" id="thermo_name" value="" class="text ui-widget-content ui-corner-all"></td>
+            </tr>
+        </table>
+        <hr>
+        <button id="thermo_form_delete" class="settings_form_delete ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" role="button" aria-disabled="false"><span class="ui-button-icon-primary ui-icon ui-icon-trash"></span><span class="ui-button-text">Delete</span></button>
+        <button id="thermo_form_save" class="settings_form_save ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Apply</span></button>
+    </div>
+
+    <div id="reverser_form" class="settings_form" style="display: none; position: absolute;">
+        <button id="reverser_form_close" class="settings_form_close ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only" role="button" aria-disabled="false" title=""><span class="ui-button-icon-primary ui-icon ui-icon-close"></span><span class="ui-button-text"></span></button></br>
+        <table>
+            <tr>
+                <td><label for="reverser_name">Name</label></td>
+                <td><input type="text" name="reverser_name" id="reverser_name" value="" class="text ui-widget-content ui-corner-all"></td>
+            </tr>
+        </table>
+        <hr>
+        <button id="reverser_form_delete" class="settings_form_delete ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" role="button" aria-disabled="false"><span class="ui-button-icon-primary ui-icon ui-icon-trash"></span><span class="ui-button-text">Delete</span></button>
+        <button id="reverser_form_save" class="settings_form_save ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Apply</span></button>
+    </div>
+
+    <div id="func_form" class="settings_form" style="display: none; position: absolute;">
+        <button id="func_form_close" class="settings_form_close ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only" role="button" aria-disabled="false" title=""><span class="ui-button-icon-primary ui-icon ui-icon-close"></span><span class="ui-button-text"></span></button></br>
+        <table>
+            <tr>
+                <td><label for="func_name">Name</label></td>
+                <td><input type="text" name="func_name" id="func_name" value="" class="text ui-widget-content ui-corner-all"></td>
+            </tr>
+        </table>
+
+        <hr>
+        <button id="func_form_delete" class="settings_form_delete ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" role="button" aria-disabled="false"><span class="ui-button-icon-primary ui-icon ui-icon-trash"></span><span class="ui-button-text">Delete</span></button>
+        <button id="func_form_save" class="settings_form_save ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Apply</span></button>
+    </div>
+
+    <div id="splitter_form" title="Splitter Properties" class="settings_form" style="display: none; position: absolute;">
+        <button id="splitter_form_close" class="settings_form_close ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only" role="button" aria-disabled="false" title=""><span class="ui-button-icon-primary ui-icon ui-icon-close"></span><span class="ui-button-text"></span></button></br>
+        <table>
+            <tr>
+                <td><label for="splitter_form_perc">Fraction of traffic that goes to the top channel</label></td>
+                <td><input type="text" name="splitter_form_perc" id="splitter_form_perc" value="" class="text ui-widget-content ui-corner-all"></td>
+            </tr>
+        </table>
+        <hr>
+        <button id="splitter_form_delete" class="settings_form_delete ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" role="button" aria-disabled="false"><span class="ui-button-icon-primary ui-icon ui-icon-trash"></span><span class="ui-button-text">Delete</span></button>
+        <button id="splitter_form_disconnect" class="settings_form_disconnect ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Disconnect</span></button>
+        <button id="splitter_form_save" class="settings_form_save ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Apply</span></button>
+    </div>
+
+    <div id="switch_form" title="Switch Properties" class="settings_form" style="display: none; position: absolute;">
+        <button id="switch_form_close" class="settings_form_close ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only" role="button" aria-disabled="false" title=""><span class="ui-button-icon-primary ui-icon ui-icon-close"></span><span class="ui-button-text"></span></button></br>
+        <table>
+            <tr>
+                <td><label for="switch_form_param1">Distribution</label></td>
+                <td><input type="text" name="switch_form_param1" id="switch_form_param1" value="" class="text ui-widget-content ui-corner-all"></td>
+            </tr>
+            <tr>
+                <td><label for="switch_form_param1">Param 1</label></td>
+                <td><input type="text" name="switch_form_param1" id="switch_form_param1" value="" class="text ui-widget-content ui-corner-all"></td>
+            </tr>
+            <tr>
+                <td><label for="switch_form_param2">Param 2</label></td>
+                <td><input type="text" name="switch_form_param2" id="switch_form_param2" value="" class="text ui-widget-content ui-corner-all"></td>
+            </tr>
+        </table>
+        <hr>
+        <button id="switch_form_delete" class="settings_form_delete ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" role="button" aria-disabled="false"><span class="ui-button-icon-primary ui-icon ui-icon-trash"></span><span class="ui-button-text">Delete</span></button>
+        <button id="switch_form_disconnect" class="settings_form_disconnect ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Disconnect</span></button>
+        <button id="switch_form_save" class="settings_form_save ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Apply</span></button>
+    </div>
+
+    <div id="splitfunc_form" title="Function Splitter Properties" class="settings_form" style="display: none; position: absolute;">
+        <button id="splitfunc_form_close" class="settings_form_close ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only" role="button" aria-disabled="false" title=""><span class="ui-button-icon-primary ui-icon ui-icon-close"></span><span class="ui-button-text"></span></button></br>
+        <table>
+            <tr>
+                <td><label for="splitfunc_form_funct">Choose UDO field</label></td>
+                    <td><select name="splitfunc_dropdown_0" id="splitfunc_dropdown_0" class="text ui-widget-content ui-corner-all">
+                            <!-- <option value="gaussian">Gaussian</option>
+                            <option value="exponential">Exponential</option>
+                            <option value="pareto">Pareto</option>
+                            <option value="random">Random</option>
+                            <option value="gamma">Gamma</option>
+                            <option value="weibull">Weibull</option>
+                            <option value="constant">Constant</option> -->
+                        </select> 
+                </td>
+            </tr>
+            <tr>
+                <td><label for="splitfunc_form_funct">Function to determine what traffic goes to the top channel</label></td>
+                    <td><select name="splitfunc_dropdown_1" id="splitfunc_dropdown_1" class="text ui-widget-content ui-corner-all">
+                            <option value=">">></option>
+                            <option value=">=">>=</option>
+                            <option value="<"><</option>
+                            <option value="<="><=</option>
+                            <option value="==">==</option>
+                            <option value="!=">!=</option>
+                        </select> 
+                </td>
+                <td><input type="text" name="splitfunc_form_param1" id="splitfunc_form_param1" value="" class="text ui-widget-content ui-corner-all"></td>
+            </tr>
+            
+        </table>
+        <hr>
+        <button id="splitfunc_form_delete" class="settings_form_delete ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" role="button" aria-disabled="false"><span class="ui-button-icon-primary ui-icon ui-icon-trash"></span><span class="ui-button-text">Delete</span></button>
+        <button id="splitfunc_form_disconnect" class="settings_form_disconnect ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Disconnect</span></button>
+        <button id="splitfunc_form_save" class="settings_form_save ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Apply</span></button>
+    </div>
+
+
+    <div id="funcblock_form" title="Function Block Properties" class="settings_form" style="display: none; position: absolute;">
+            <button id="funcblock_form_close" class="settings_form_close ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only" role="button" aria-disabled="false" title=""><span class="ui-button-icon-primary ui-icon ui-icon-close"></span><span class="ui-button-text"></span></button></br>
+
+        <table>
+            <tr>
+                <td><label for="func_name">Name</label></td>
+                <td><input type="text" name="func_name" id="func_block_name" value="" class="text ui-widget-content ui-corner-all"></td>
+            </tr>
+        </table>
+
+            <table>
+                <tr>
+                    <td><label for="funcblock_form_funct">Choose UDO field</label></td>
+                        <td><select name="funcblock_dropdown_0" id="funcblock_dropdown_0" onChange="funcBlockDropdownSwitch()"class="text ui-widget-content ui-corner-all">
+                            </select> 
+                    </td>
+                </tr>
+                <tr>
+                    <td><label for="funcblock_form_funct">Function to determine what traffic goes to the top channel</label></td>
+                        <td><select name="funcblock_dropdown_1" id="funcblock_dropdown_1" class="text ui-widget-content ui-corner-all">
+                                <option id="addition"value="+">+</option><!-- int, float -->
+                                <option id="subtraction"value="-">-</option><!-- int, float -->
+                                <option id="multiplication"value="*">x</option><!-- int float -->
+                                <option id="division" value="/">/</option><!-- int, float (do we care about zero)-->
+                                <option id="modulus" value="%">%</option><!-- int -->
+                                <option id="not" value="!">!</option><!-- boolean -->
+                            </select> 
+                    </td>
+                    <td><input type="text" name="funcblock_form_param1" id="funcblock_form_param1" value="" class="text ui-widget-content ui-corner-all"></td>
+                </tr>
+                
+            </table>
+            <hr>
+            <button id="funcblock_form_delete" class="settings_form_delete ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" role="button" aria-disabled="false"><span class="ui-button-icon-primary ui-icon ui-icon-trash"></span><span class="ui-button-text">Delete</span></button>
+            <button id="funcblock_form_disconnect" class="settings_form_disconnect ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Disconnect</span></button>
+            <button id="funcblock_form_save" class="settings_form_save ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Apply</span></button>
+    </div>
+
+
+
+
+    <div id="udo_form" class="udo_form" style="display: none; position: absolute;">
+        <button id="source_form_close" class="settings_form_close ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only" role="button" aria-disabled="false" title=""><span class="ui-button-icon-primary ui-icon ui-icon-close"></span><span class="ui-button-text"></span><b></b></button></br>
+        
+        <div id="udo_form_to_append">
+              
+        </div>
+
+        <form id="form1">
+            <form>
+            <input id="use_radio_button" type="radio" class="big" name="tobe" value="use" ><font size="3">Use</font>
+            &nbsp; &nbsp; &nbsp;
+            <input id="disable_radio_button" type="radio" class="big" name="tobe" value="disable" ><font size="3">Disable</font>
+            </form>
+            <hr>
+            <!-- <br /> -->
+            <div id="TextBoxContainer" style="overflow: auto; height:100px;">
+           <!--Textboxes will be added here -->
+           <table id="udo_dailogue_table">
+                   <tr id="udo_row_0">
+                       <td> <input id="udo_text_box_0" type="text" value="field 0" class="text ui-widget-content ui-corner-all" /></td>
+                       <td><select name="sources_dropdown" class = "ui-widget-content ui-corner-all" id="udo_dropdown_0" class="text ui-widget-content ui-corner-all">
+                           <option  value="INT">INT</option>
+                           <option  value="FLOAT">FLOAT</option>
+                           <option  value="BOOLEAN">BOOLEAN</option>
+                       </select></td>
+                   </tr>
+
+                   <tr id="udo_row_1" style="display: none">
+                       <td> <input id="udo_text_box_1" type="text" value = "field 1" class="text ui-widget-content ui-corner-all" /></td>
+                       <td><select name="sources_dropdown" class = "ui-widget-content ui-corner-all" id="udo_dropdown_1" class="text ui-widget-content ui-corner-all">
+                                <option  value="INT">INT</option>
+                                <option  value="FLOAT">FLOAT</option>
+                                <option  value="BOOLEAN">BOOLEAN</option>
+                            </select>
+                        </td>
+
+                       <td> <button class= "udo_button_close ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only" onclick = "removeUdoTableRow(1)" /></button> 
+                       </td>
+                   </tr>
+
+                   <tr id="udo_row_2" style="display: none">
+                       <td> <input id="udo_text_box_2" type="text" value = "field 2" class="text ui-widget-content ui-corner-all" /></td>
+                       <td><select name="sources_dropdown" class = "ui-widget-content ui-corner-all" id="udo_dropdown_2" class="text ui-widget-content ui-corner-all">
+                           <option  value="INT">INT</option>
+                           <option  value="FLOAT">FLOAT</option>
+                           <option  value="BOOLEAN">BOOLEAN</option>
+                       </select></td>
+
+                        <td> <button class="udo_button_close ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only" onclick = "removeUdoTableRow(2)" /> </button> 
+                       </td>
+                   </tr>
+
+                   <tr id="udo_row_3" style="display: none">
+                       <td> <input id="udo_text_box_3" type="text" value = "field 3" class="text ui-widget-content ui-corner-all" /></td>
+                       <td><select name="sources_dropdown" class = "ui-widget-content ui-corner-all" id="udo_dropdown_3" class="text ui-widget-content ui-corner-all">
+                           <option  value="INT">INT</option>
+                           <option  value="FLOAT">FLOAT</option>
+                           <option  value="BOOLEAN">BOOLEAN</option>
+                       </select></td>
+
+                        <td> <button class="udo_button_close ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only" onclick = "removeUdoTableRow(3)" /> </button> 
+                       </td>
+                   </tr>
+
+                   <tr id="udo_row_4" style="display: none">
+                       <td> <input id="udo_text_box_4" type="text" value = "field 4" class="text ui-widget-content ui-corner-all"/></td>
+                       <td><select name="sources_dropdown" class = "ui-widget-content ui-corner-all" id="udo_dropdown_4" class="text ui-widget-content ui-corner-all">
+                           <option  value="INT">INT</option>
+                           <option  value="FLOAT">FLOAT</option>
+                           <option  value="BOOLEAN">BOOLEAN</option>
+                       </select></td>
+
+                        <td> <button class="udo_button_close ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only" onclick = "removeUdoTableRow(4)" /></button> 
+                       </td>
+                   </tr>
+           </table>
+                  
+           </div>
+           <div id="udo_save_btns_div">
+            <button id="btnAdd" class = "ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" onclick="addUdoTableRow()" ><span class="ui-button-text">Add</span></button>
+            <button id="btnApply" class = "ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" onclick="saveUDOParams()"><span class="ui-button-text">Apply</span></button>
+            </div>
+            
+        </form>
+        
+       <!-- <button id="source_form_delete" class="settings_form_delete ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" role="button" aria-disabled="false"><span class="ui-button-icon-primary ui-icon ui-icon-trash"></span><span class="ui-button-text">Delete</span></button>
+        <button id="source_form_disconnect" class="settings_form_disconnect ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Disconnect</span></button>
+        <button id="source_form_save" class="settings_form_save ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Apply</span></button> -->
+
+    </div>
+
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+
+<style type="text/css">
+    
+    path { 
+    stroke: steelblue;
+    stroke-width: 2;
+    fill: none;
+}
+
+.axis path,
+.axis line {
+    fill: none;
+    stroke: grey;
+    stroke-width: 1;
+    shape-rendering: crispEdges;
+}
+</style>
+
+<!--
+<script>
+
+// Set the dimensions of the canvas / graph
+var margin = {top: 30, right: 20, bottom: 30, left: 50},
+    width = 300 - margin.left - margin.right,
+    height = 400 - margin.top - margin.bottom;
+
+// Parse the date / time
+var parseDate = d3.time.format("%d-%b-%y").parse;
+
+// Set the ranges
+var x = d3.time.scale().range([0, width]);
+var y = d3.scale.linear().range([height, 0]);
+
+// Define the axes
+var xAxis = d3.svg.axis().scale(x)
+    .orient("bottom").ticks(5);
+
+var yAxis = d3.svg.axis().scale(y)
+    .orient("left").ticks(5);
+
+// Define the line
+var valueline = d3.svg.line()
+    .x(function(d) { return x(d.date); })
+    .y(function(d) { return y(d.close); });
+    
+// Adds the svg canvas
+var svg = d3.select("#analytics_graph")
+    .append("svg")
+        .attr("width", width - 400 + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+        .attr("transform", 
+              "translate(" + margin.left + "," + margin.top + ")");
+
+// Get the data
+d3.csv("data.tsv", function(error, data) {
+    data.forEach(function(d) {
+        d.date = parseDate(d.date);
+        d.close = +d.close;
+    });
+    // Scale the range of the data
+    x.domain(d3.extent(data, function(d) { return d.date; }));
+    y.domain([0, d3.max(data, function(d) { return d.close; })]);
+
+    // Add the valueline path.
+    svg.append("path")
+        .attr("class", "line")
+        .attr("d", valueline(data));
+
+    // Add the X Axis
+    svg.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + height + ")")
+        .call(xAxis);
+
+    // Add the Y Axis
+    svg.append("g")
+        .attr("class", "y axis")
+        .call(yAxis);
+});
+
+</script>
+-->
+    
+    
+    <!-- modified code ends here -->
+
+
+<div class="ui-dialog ui-widget ui-widget-content ui-corner-all ui-draggable" tabindex="-1" role="dialog" aria-labelledby="ui-dialog-title-verify_clear" style="display: none; z-index: 1000; outline: 0px;"><div class="ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix"><span class="ui-dialog-title" id="ui-dialog-title-verify_clear">&nbsp;</span><a href="#" class="ui-dialog-titlebar-close ui-corner-all" role="button"><span class="ui-icon ui-icon-closethick">close</span></a></div><div id="verify_clear" class="ui-dialog-content ui-widget-content">
+        <p><span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;"></span>
+            Do you wish to discard the scenario in the canvas?</p>
+    </div><div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix"><div class="ui-dialog-buttonset"><button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Cancel</span></button><button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Ok</span></button></div></div></div><div class="ui-dialog ui-widget ui-widget-content ui-corner-all ui-draggable" tabindex="-1" role="dialog" aria-labelledby="ui-dialog-title-save_dialog" style="display: none; z-index: 1000; outline: 0px;"><div class="ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix"><span class="ui-dialog-title" id="ui-dialog-title-save_dialog">Save</span><a href="#" class="ui-dialog-titlebar-close ui-corner-all" role="button"><span class="ui-icon ui-icon-closethick">close</span></a></div><div id="save_dialog" class="ui-dialog-content ui-widget-content">
+        <p>Copy-paste the text below in a text file.You can load this scenario later
+            by clicking the 'Load' button in the toolbar, and pasting this text.</p>
+        <textarea id="save_textarea" name="save_textarea" rows="20" cols="80"></textarea>
+    </div></div><div class="ui-dialog ui-widget ui-widget-content ui-corner-all ui-draggable" tabindex="-1" role="dialog" aria-labelledby="ui-dialog-title-load_dialog" style="display: none; z-index: 1000; outline: 0px;"><div class="ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix"><span class="ui-dialog-title" id="ui-dialog-title-load_dialog">Load</span><a href="#" class="ui-dialog-titlebar-close ui-corner-all" role="button"><span class="ui-icon ui-icon-closethick">close</span></a></div><div id="load_dialog" class="ui-dialog-content ui-widget-content">
+        <p>Copy the text below</p>
+        <textarea id="load_textarea" name="load_textarea" rows="20" cols="40"></textarea>
+    </div><div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix"><div class="ui-dialog-buttonset"><button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Cancel</span></button><button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Load</span></button></div></div></div><i title="Raphaël Colour Picker" style="display: none; color: rgb(255, 192, 203);"></i><iframe name="oauth2relay622341419" id="oauth2relay622341419" src="https://accounts.google.com/o/oauth2/postmessageRelay?parent=http%3A%2F%2Fsimjs.com#rpctoken=438235500&amp;forcesecure=1" tabindex="-1" style="width: 1px; height: 1px; position: absolute; top: -100px;"></iframe></body></html>
+
+
+	<script src="visual/lineGraph.js" type="text/javascript"></script>

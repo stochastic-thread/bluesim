@@ -1,0 +1,56 @@
+
+function FuncModel(a) {
+    this.view = a;
+    this.dest = this.entity = null;
+	this.numServed = 0;
+	/* field of the UDO to update */
+	this.fieldToEdit = "";
+	/* general function block */
+	this.funcString = "";
+    this.view.image.attr({
+    })
+}
+
+FuncModel.prototype.jsonify = function() {
+    return {
+    }
+};
+
+FuncModel.prototype.start = function() {
+    this.entity = QueueApp.sim.addEntity(FuncEntity)
+};
+
+FuncModel.prototype.connect = function() {
+    this.entity.dest = this.dest ? this.dest.entity : null
+};
+
+FuncModel.prototype.showSettings = function() {
+    var a = $("#server_form");
+    QueueApp.form_view = this.view;
+    a.show().position({
+        of: $(this.view.image.node),
+        at: "center center",
+        my: "left top"
+    })
+};
+
+FuncModel.prototype.saveSettings = function() {
+    var a = $("#server_form");
+    this.view.image.attr({
+    })
+};
+
+FuncModel.prototype.unlink = function() {
+    this.view = null
+};
+
+var FuncEntity = {
+    start: function(a, b, c) {
+		this.numServed = 0;
+    },
+    onMessage: function(sender, message) {
+        this.numServed++;
+		message.fields[this.fieldToEdit] = eval(this.funcString);
+		this.dest && this.send(message, 0, this.dest);
+    }
+};

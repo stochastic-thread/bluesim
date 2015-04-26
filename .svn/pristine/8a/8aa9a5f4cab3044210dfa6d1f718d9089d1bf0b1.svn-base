@@ -1,0 +1,73 @@
+
+function setUDO(){
+
+	//alert("you clicked edit udo");
+	
+	//Push the fields that the user enteres in the forms as a tuple of the form
+	//(field name, field type)
+	// for all the fields entered
+	//LIST__OF_PARAMETERS.push()
+
+    //This function resets every source form.  Can probably find a way not to call this unless
+    // user has updated the UDO in any way...
+    // will need a way to save state and show state like the entities (probably just copy their code
+    // and implement it here)...
+	clearAndUpdateForm();
+	
+
+	// get name that user entered from form
+	//var udoName = document.getElementById("udo_form_name");
+	
+	//assign name that user entered in form
+	//NAME_OF_OBJECT;
+
+	//list name that user entered from form
+	//var udoNameDisplay = document.getElementById("udo_name").innerHTML = NAME_OF_OBJECT;
+
+	var myWindow = window.open("", "", "width=200, height=100");
+
+	window.onload = RecreateDynamicTextboxes;
+}
+
+	function GetDynamicTextBox(value){
+    return '<select name="source_dropdown" id="dropdown" onChange="dropper();">' +
+                        '<option value="exponential">Exponential</option>' +
+                        '<option value="gaussian">Gaussian</option>' +
+                        '<option value="pareto">Pareto</option>' +
+                    '</select>' +
+
+    	'<input name = "DynamicTextBox" type="text" value = "' + value + '" />' +
+    	'<input type="button" value="Remove" onclick = "RemoveTextBox(this)" />'
+    
+        
+}
+function AddTextBox() {
+    var div = document.createElement('div');
+    div.innerHTML = GetDynamicTextBox("");
+    document.getElementById("TextBoxContainer").appendChild(div);
+}
+ 
+function RemoveTextBox(div) {
+    document.getElementById("TextBoxContainer").removeChild(div.parentNode);
+}
+ 
+function RecreateDynamicTextboxes() {
+    var values = eval('<%=Values%>');
+    if (values != null) {
+        var html = "";
+        for (var i = 0; i < values.length; i++) {
+            html += "<div>" + GetDynamicTextBox(values[i]) + "</div>";
+        }
+        document.getElementById("TextBoxContainer").innerHTML = html;
+    }
+}
+
+setUDO.prototype.showSettings = function() {
+    var a = $("#udo_form");
+    QueueApp.form_view = this.view;
+    a.show().position({
+        of: $(this.view.image.node),
+        at: "center center",
+        my: "left top"
+    })
+};

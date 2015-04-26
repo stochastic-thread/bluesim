@@ -1,0 +1,63 @@
+
+function SinkModel(a) {
+    this.view = a;
+    this.entity = null;
+    this.statTable = $("#sink_stats").clone().attr("id", a.name);
+    this.statTable.find("h2").text(a.name);
+    $("#results").append(this.statTable);
+    this.stat = [this.statTable.find("#depart"), this.statTable.find("#pop"), this.statTable.find("#popd"), this.statTable.find("#stay"), this.statTable.find("#stayd")]
+}
+
+SinkModel.prototype.jsonify = function() {
+    return null
+};
+
+SinkModel.prototype.start = function() {
+    this.entity = QueueApp.sim.addEntity(SinkEntity)
+};
+
+SinkModel.prototype.connect = function() {};
+
+SinkModel.prototype.showSettings = function() {
+    var a = $("#sink_form");
+    QueueApp.form_view = this.view;
+    a.show().position({
+        of: $(this.view.image.node),
+        at: "center center",
+        my: "left top"
+    })
+};
+
+SinkModel.prototype.saveSettings = function() {};
+
+SinkModel.prototype.showStats = function() {
+    var a = this.entity.population;
+    this.stat[0].text(a.durationSeries.count());
+    this.stat[1].text(a.sizeSeries.average().toFixed(3));
+    this.stat[2].text(a.sizeSeries.deviation().toFixed(3));
+    this.stat[3].text(a.durationSeries.average().toFixed(3));
+    this.stat[4].text(a.durationSeries.deviation().toFixed(3));
+    this.view.showCounters(a.durationSeries.count(), NaN)
+
+    //call animation manager funtion
+    var value = a.durationSeries.average().toFixed(3);
+    stat_animation_manager(this.view.image.node.id, "sink", value);
+};
+
+SinkModel.prototype.unlink = function() {
+    this.statTable.remove();
+    this.stat = this.view = null
+};
+
+var SinkEntity = {
+    start: function() {
+        this.population = new Sim.Population
+    },
+    arrive: function(a) {
+        a || (a = 0);
+        this.population.enter(a);
+        this.population.leave(a, this.time())
+    }
+};
+
+

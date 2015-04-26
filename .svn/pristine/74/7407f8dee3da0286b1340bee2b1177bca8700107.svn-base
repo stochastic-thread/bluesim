@@ -1,0 +1,66 @@
+/* only allowed types */
+LIST_OF_TYPES = ["INT", "FLOAT", "BOOLEAN"];
+/* list of tuples (field name, field type) */
+LIST_OF_PARAMETERS = []
+
+UPDATE_SOURCE = true;
+
+/* name of object being instantiated in sources.. just superficial */
+NAME_OF_OBJECT = "Ping"
+
+/* map of distributions we will support, each points to the number of parameters it needs */
+LIST_OF_DISTRIBUTIONS = {
+	gamma: 2,
+	pareto: 1,
+	weibull: 2,
+	constant: 1, 
+	gaussian: 2, 
+	exponential: 1, 
+	random: 0
+};
+
+/* link to a button to allow the user to download work */
+function blueSimDownload(request, filename){
+	var pom = document.createElement('a');
+	switch(request){
+		case "JSON":
+			text = QueueApp.stringify();
+			break;
+		case "DATA":
+			text = "";
+			break;
+	}
+	pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+	pom.setAttribute('download', filename);
+
+	pom.style.display = 'none';
+	document.body.appendChild(pom);
+
+	pom.click();
+
+	document.body.removeChild(pom);
+}
+
+/* on the fly random number distributor */
+function randDist(distString, paramArray, randObject){
+	switch(distString){
+		case "gaussian":
+			return randObject.normal(paramArray[0], paramArray[1]);
+		case "gamma":
+			return randObject.gamma(paramArray[0],paramArray[1]);
+		case "weibull":
+			return randObject.weibull(paramArray[0],paramArray[1]);
+		case "uniform":
+			return randObject.uniform(paramArray[0], paramArray[1]);
+		case "exponential":
+			return randObject.exponential(paramArray[0]);
+		case "pareto":
+			return randObject.pareto(paramArray[0]);
+		case "constant":
+			return paramArray[0];
+		
+		default:
+			return randObject.random();
+	}
+	console.log("randDist had a problem");
+}

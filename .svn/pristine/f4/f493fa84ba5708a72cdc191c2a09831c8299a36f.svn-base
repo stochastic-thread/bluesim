@@ -1,0 +1,37 @@
+March 30, 2015
+Bluesim meeting
+
+over the weekend we prototyped/reviewed the sim.js and visualgo code
+this meeting focused on 
+	reviewing the work done on each prototype over the weekend
+		sim.js
+			created a 3-way splitter
+			shows the ease in creating a new objects
+			see the flow of the code
+			all of the sim.js code is copied into queue-min.js
+			codebase is small!
+		visualgo
+			awesome d3 frontend
+			purtilo likes the grpahics of the site
+the goal is to pick one of these demo's and use them as a spring board
+problem with sim.js
+	need to expand the functionality.. a lot
+		generators need to have different types
+		generator data need to be combined into complex types
+		branches need to be smarter
+			they should be based off of fields
+		we should be able to apply functions on the data as well
+		generators should use different probability functions
+	ANIMATIONS - yeah non-existent
+		D3 looks good though
+		we can replace the raphael library with d3 and then move from there
+problem with visualgo
+	huge codebase
+
+decision as of now: we are going to build up from the sim.js demo
+we will present to Purtilo our current plan and take his advice
+for the meeting wednesday
+	update the team on today's decision
+	draft a proposal to show to Purtilo on Thursday
+	determine a modular approach to the design
+	divide up the work

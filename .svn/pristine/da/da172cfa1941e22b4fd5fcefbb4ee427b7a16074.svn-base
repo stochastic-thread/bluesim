@@ -1,0 +1,63 @@
+what is it
+	motivation: something which is bringing in a broader userbase in simulation tools (articulation tools)
+	tools to illustrate systems
+	there is a lot of overhead in simple simulations
+	youtube on SEAM - all about an animation
+	animation seems important, cheap
+	envision, make a build website (that's what he is thinking)
+	then we can embed our creation in another website
+	hopefully, little training
+	declarative language - builder tool
+	(someone should also be able to do something in a text editor)
+		you could modify the text declarations on the builder (move things around)
+	difference between articulating and learning something
+what if we write a manual, could we ask for more than just drag n' drop
+	if you are smart, you can code I guess, but that is not the intent
+who is the audience
+	target audience, far more limited in skill
+	mid-level administrator wants to explain pathways (articulate)
+		or maybe build a simulation to learn
+	shouldn't have to be STEM
+what skills and coding knowledge should we expect
+	none
+	if any should just allow for even cooler things, but non-stem people should be able to use this
+how is this different from currently existing software
+	powerpoint you can do animations (kinds of simulations)
+		but no one likes this
+		it sucks
+		sharing is difficult
+		WEB
+	prezzi, similar to powerpoint
+how will you validate the software
+	we should demo what our project can do
+	we need a detailed proposal
+	in the end, the project grade depends on completing the points on the proposal
+what should be easy to simulate (examples)?
+	simplest use case (not coding)
+	dumb animations
+what kinds of systems are you hoping to optimize
+	discrete events
+	flow graphs
+	operations research
+	campus policy (he writes it on the whiteboard)
+			|--> Trade School	 |		 | unemployed
+		HS ---> Community College|	fuzz |
+			|--> 4 year college	 |		 | employed-->inside area
+								 |		 |		|--> outside area
+		so how do we do it
+		graphically have a sequence of students
+		they just go through the pathways
+	dark ages (classical)
+		a bank with three tellers
+		customers arrive into some queue
+		at which point they go to one of the tellers
+		or they can go to a teller's individual queue
+		need to gather statistics
+optional requirement
+	wiki ability (more about sharing)
+	like building an engine may require lots of fine tuning
+		probably too elaborate though
+NOTES
+	look at functional programming languages
+	look up scratch, teach kids computational thinking
+		we could just pull this and learn from this (prototype)

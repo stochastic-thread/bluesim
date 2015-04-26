@@ -1,0 +1,561 @@
+
+
+var QueueApp = {
+	debug: false,
+    init: function() {
+        console.log("init");
+        this.canvas = Raphael("canvas", 800, 400);
+        $("#new_file").button({
+            text: !1,
+            icons: {
+                primary: "ui-icon-document"
+            }
+        }).click(function() {
+            QueueApp.reset()
+        });
+        $("#load_file").button({
+            text: !1,
+            icons: {
+                primary: "ui-icon-folder-open"
+            }
+        }).click(function() {
+            QueueApp.load()
+        });
+        $("#save_file").button({
+            text: !1,
+            icons: {
+                primary: "ui-icon-disk"
+            }
+        }).click(function() {
+            QueueApp.save()
+        });
+        $("#file_ops").buttonset();
+        $("#verify_clear").dialog({
+            autoOpen: !1,
+            width: 250,
+            modal: !0,
+            resizable: !1,
+
+              buttons: {
+                Cancel: function() {
+                    $(this).dialog("close")
+                },
+                Ok: function() {
+                    $(this).dialog("close");
+                    QueueApp.reset(!0)
+                }
+            }
+               });
+        $("#save_dialog").dialog({
+            autoOpen: !1,
+            width: 450,
+            modal: !0,
+            resizable: !1
+        });
+        $("#load_dialog").dialog({
+            autoOpen: !1,
+            width: 450,
+            modal: !0,
+            resizable: !1,
+ buttons: {
+                Cancel: function() {
+                    $(this).dialog("close")
+                },
+                Load: function() {
+                    $(this).dialog("close");
+                    QueueApp.reset(!0);
+                    QueueApp.loadtext($("#load_textarea").val())
+                }
+            }
+       });
+        $("#play_sim").button({
+            icons: {
+                primary: "ui-icon-play"
+            }
+        }).click(function() {
+            QueueApp.startSim();
+        });
+        $("#config_sim").button({
+            icons: {
+                primary: "ui-icon-clock"
+            }
+        }).click(function() {
+            console.log("config");
+            QueueApp.showSimProperties()
+        });
+        $("#sim_ops").buttonset();
+        $("#pause_sim").button({
+            text: !1,
+            icons: {
+                primary: "ui-icon-pause"
+            }
+        }).click(function() {
+            QueueApp.paused ? (QueueApp.paused = !1, $("#pause_sim").button("option", "icons", {
+                primary: "ui-icon-pause"
+            }), QueueApp.run()) : ($("#pause_sim").button("option", "icons", {
+                primary: "ui-icon-play"
+            }), QueueApp.paused = !0)
+        });
+        $("#stop_sim").button({
+            text: !1,
+            icons: {
+                primary: "ui-icon-stop"
+            }
+        }).click(function() {
+            QueueApp.playing = !1;
+            QueueApp.paused && QueueApp.complete()
+        });
+        $("#sim_play_ops").buttonset().hide();
+        this.progress =
+            $("#progressbar");
+        this.progress.progressbar().hide();
+        $(".settings_form_delete").button({
+            icons: {
+                primary: "ui-icon-trash"
+            }
+        }).click(function() {
+            QueueApp.form_view.unlink();
+            $(this).parent().hide()
+        });
+        $(".settings_form_disconnect").button().click(function() {
+            QueueApp.form_view.disconnect();
+            $(this).parent().hide()
+        });
+        $(".settings_form_save").button().click(function() {
+            QueueApp.form_view.model.saveSettings();
+            $(this).parent().hide()
+        });
+        $(".settings_form").hide();
+        $(".settings_form_close").button({
+            icons: {
+                primary: "ui-icon-close"
+            },
+            text: !1
+        }).click(function() {
+            $(this).parent().hide()
+        });
+        $("#simulation_dialog_save").button().click(function() {
+            $(this).parent().hide();
+            QueueApp.saveSettings()
+        });
+        this.reset()
+    },
+    reset: function(a) {
+        console.log("reset");
+        function b(a, b, c, d) {
+            a.drag(function(a, b) {
+                var c = this.ox + a,
+                    d = this.oy + b;
+                c < 0 || c > 560 || d < 0 || d > 360 || this.attr({
+                    x: this.ox + a,
+                    y: this.oy + b
+                })
+            }, function() {
+                this.ox = this.attr("x");
+                this.oy = this.attr("y")
+            }, function() {
+                var a = this.attr("x"),
+                    f = this.attr("y");
+                this.attr({
+                    x: b,
+                    y: c
+                });
+                a < 60 && f < 200 && (f = a = null);
+                d.call(QueueApp, a, f)
+            })
+        }
+        if (!this.debug && !a &&
+            this.views && this.views.length != 0) $("#verify_clear").dialog("open");
+        else {
+            if (this.models) {
+                a = this.models.length;
+                for (a -= 1; a >= 0; a--) this.models[a].unlink && this.models[a].unlink()
+            }
+            this.sim = null;
+            this.until = 28800;
+            this.seed = 1234;
+            this.showConn = !1;
+
+            this.func_id = this.sink_id = this.splitter_id = this.source_id = this.server_id = this.stack_id = this.splitfunc_id = this.switch_id = 0;
+
+            this.canvas.clear();
+            this.posx = 100;
+            this.posy = 50;
+            this.views = [];
+            this.models = [];
+            this.form_view = null;
+            this.canvas.rect(0, 0, 800, 400).attr({
+                fill: "#EEEEEE",
+                "fill-opacity": ".8"
+            });
+            for (var c = [], a = 0; a <= 800; a += 50) c.push("M" +
+                a + " 0L" + a + " 400"), c.push("M0 " + a + "L800 " + a);
+            this.canvas.path(c.join("")).attr({
+                "stroke-width": 0.1,
+                stroke: "blue"
+            });
+            this.canvas.path("M0 0L0 400L800 400L800 0L0 0").attr({
+                "stroke-width": 1,
+                stroke: "blue"
+            });
+            var numRect = 7;
+            for (a = 0; a < numRect; a++) this.canvas.rect(10, 10 + 50 * a, 50, 50).attr({
+                fill: "#FAF6AA",
+                "fill-opacity": "50",
+                stroke: "F7D68A"
+            });
+            a = this.parseTime(this.until);
+            // $("#config_sim").button("option", "label", a[0].toFixed(3) + " " + a[1]);   
+            $("#config_label").text(a[0].toFixed(3) + " " + a[1]);
+            var a = this.canvas.image("images/server.png", 12, 25, 46.4, 22),
+                stck = this.canvas.image("images/stack.png", 12, 70, 46.4, 22);
+
+                c = this.canvas.image("images/customers.png",
+                    15, 320, 43.2, 24),
+                d = this.canvas.image("images/splitter.png", 15, 115, 36.9, 43.2),
+                e = this.canvas.image("images/door_out.png", 18, 165, 32, 32),
+				f = this.canvas.image("images/split3.png", 21, 215, 36.9, 43.2),
+				swcher = this.canvas.image("images/switcher.png", 24, 265, 36.9, 43.2),
+            a.attr({
+                title: "Drag and drop to create a new Queue"
+            });
+            c.attr({
+                title: "Drag and drop to create a new Source"
+            });
+            d.attr({
+                title: "Drag and drop to create a new Splitter"
+            });
+            e.attr({
+                title: "Drag and drop to create a new Sink"
+            });
+			f.attr({
+				title: "Drag and drop to create a new function splitter"
+			});
+			swcher.attr({
+				title: "Drag and drop to create a new Switch"
+			});
+			stck.attr({
+				title: "Drag and drop to create a new Stack"
+			});
+            b(a, 12, 25, QueueApp.newServer);
+            b(stck, 12, 70, QueueApp.newStack);
+            b(d, 15, 115, QueueApp.newSplitter);
+            b(e, 18, 165, QueueApp.newSink);
+			b(f, 15, 215, QueueApp.newSplitFunc);
+			b(swcher, 15, 260, QueueApp.newSwitch);
+			b(c, 15, 320, QueueApp.newSource);
+            $("#about_this_model").hide()
+        }
+    },
+    updateDrop: function() {
+        console.log("updateDrop");
+        this.posx += 20;
+        this.posy += 20;
+        if (this.posy > 360) this.posy = 20, this.posx -= 200
+    }, 
+    newView: function(a, b, c, d, e, f, g, i) {
+        console.log("newView");
+	//(a=ImageView, b=Entity Model, c=type name, d=instance name, e=hasInput , f=hasOutput , g=x position, i=y position)
+	// !0 = true and !1 = false.  Don't ask me why they do this.
+        if (!g) g = this.posx, i = this.posy, this.updateDrop();
+        a = new a(this.canvas, c, d, g, i, e, f);
+        
+        /* Create an ID tag for the entity image to use the naming convention "entity_(num)_img"
+           adding id tag here because splitter and splitfunc do not seem to use the typical
+           imageview creation */
+           
+        a.image.node.id = d + "_img";
+
+        this.showConn && a.showDots(!0);
+        this.views.push(a);
+        b = new b(a);
+        a.model = b;
+        this.models.push(b);
+        return a
+    },
+    newServer: function(a, b) {
+        this.server_id++;
+        return this.newView(ImageView, ServerModel, "queue", "queue_" + this.server_id, !0, !0, a, b)
+    },
+    newSource: function(a, b) {
+        this.source_id++;
+        return this.newView(ImageView,
+            SourceModel, "source", "source_" + this.source_id, !1, !0, a, b)
+    },
+    newSink: function(a, b) {
+        this.sink_id++;
+        return this.newView(ImageView, SinkModel, "sink", "sink_" + this.sink_id, !0, !1, a, b)
+    },
+    newSplitter: function(a, b) {
+        this.splitter_id++;
+        return this.newView(SplitterView, SplitterModel, "splitter", "splitter_" + this.splitter_id, !0, !0, a, b)
+    },
+	newSplitFunc: function(a, b){
+		this.splitfunc_id++;
+		return this.newView(SplitFuncView, SplitFuncModel, "splitfunc", "splitfunc_" + this.splitfunc_id, !0, !0, a, b);
+	},
+	newSwitch: function(a, b){
+		this.switch_id++;
+		return this.newView(SwitchView, SwitchModel, "switch","switch_" + this.switch_id, !0, !0, a, b)
+	},
+	newStack: function(a, b){
+		this.stack_id++;
+		return this.newView(ImageView, StackModel, "stack", "stack_" + this.stack_id, !0, !0, a, b)
+	},
+	newFunc: function(a, b){
+		this.func_id++;
+		return this.newView(ImageView, FuncModel, "func","func_" + this.func_id, !0, !0, a, b)
+	},
+    toggleConnections: function() {
+        this.showConn = !this.showConn;
+        for (var a = this.views.length - 1; a >= 0; a--) this.views[a].showDots(this.showConn)
+    },
+    save: function() {
+        var a = this.stringify();
+        $("#save_dialog").dialog("open");
+        $("#save_textarea").text(a).focus().select()
+    },
+    load: function() {
+        $("#load_textarea").text("");
+        $("#load_dialog").dialog("open")
+    },
+    loadtext: function(a){
+        try {
+            var b = JSON.parse(a)
+        } catch (c) {}
+        if (b.seed) this.seed = b.seed;
+        if (b.until) this.until = b.until;
+		if (b.udoName) NAME_OF_OBJECT = b.udoName;
+
+		/* clear old list of parameters and load the json one */
+		LIST_OF_PARAMETERS = [];
+		var seenNames = [];
+		for(var i = 0; i < b.udo.length; i++){
+			if($.inArray(b.udo[i][0], seenNames) == -1 &&
+				$.inArray(b.udo[i][1].toUpperCase(), LIST_OF_TYPES) > -1){
+				LIST_OF_PARAMETERS.push([b.udo[i][0], b.udo[i][1].toUpperCase()]);
+				seenNames.push(b.udo[i][0]);
+			}
+		}
+        a = this.parseTime(this.until);
+        //$("#config_sim").button("option", "label", a[0].toFixed(3) + " " + a[1]);
+        $("#config_label").text(a[0].toFixed(3) + " " + a[1]);
+		/* load objects */
+        for (var d = b.objects.length, a = {}, e = d - 1; e >= 0; e--) {
+            var f = b.objects[e],
+                g = null;
+			/* instantiate the object */
+
+			switch(f.type){
+				case "queue":
+					g = this.newServer();
+					break;
+				case "source":
+					g = this.newSource();
+					break;
+				case "sink":
+					g = this.newSink();
+					break;
+				case "switch":
+					g = this.newSwitch();
+					break;
+				case "stack":
+					g = this.newStack();
+					break;
+				case "splitter":
+					g = this.newSplitter();
+					break;
+				case "func":
+					g = this.newFunc();	
+					break;
+				case "splitfunc":
+					g = this.newSplitFunc();
+					break;
+			}
+
+            if (f.model){
+                for (prop in f.model){
+					if(prop == "udoFields"){
+						g.model.loadUDOFields(f.model[prop]);
+					} else {
+						g.model[prop] = f.model[prop];
+					}
+				}
+			}
+            g.moveto(f.x, f.y);
+            g.name = f.name;
+            a[f.name] = g
+        }
+		/* make connections */
+        for (e = d - 1; e >= 0; e--)
+            if (f = b.objects[e], f.out && (d = a[f.name]))
+                if (f.out instanceof Array)
+                    for (g = f.out.length - 1; g >= 0; g--) {
+                        var i = a[f.out[g]];
+                        i && d.connect(i, g)
+                } else {
+					(i = a[f.out]) && d.connect(i)
+				}
+    },
+    stringify: function() {
+		var a = {
+	        until: this.until,
+            seed: this.seed,
+            version: "1.1",
+			udo: [],
+			udoName: NAME_OF_OBJECT,
+            objects: []
+		};
+        for (b = this.views.length - 1; b >= 0; b--){
+			var tmpStr = (this.views[b].jsonify());
+			a.objects.push(tmpStr);
+		}
+		for(var i = 0; i < LIST_OF_PARAMETERS.length; i++)
+			a.udo.push(LIST_OF_PARAMETERS[i]);
+        return JSON.stringify(a)
+    },
+    parseTime: function() {
+        return this.until > 3600 ? [this.until / 3600, "hours"] : this.until > 60 ? [this.until / 60, "mins"] : [this.until, "secs"]
+    },
+    showSimProperties: function() {
+        console.log("showSimProperties");
+        var a = this.parseTime(),
+            b = $("#simulation_dialog");
+        b.find("#sim_seed").val(this.seed);
+        b.find("#sim_until").val(a[0]);
+        b.find("#time_selector").val(a[1]);
+        b.show().position({
+            of: $("#config_sim"),
+            at: "left bottom",
+            my: "left top"
+        })
+    },
+    saveSettings: function() {
+        console.log("saveSettings");
+        var a = $("#simulation_dialog");
+        this.until = 1 * a.find("#sim_until").val();
+        this.seed =
+            1 * a.find("#sim_seed").val();
+        a = a.find("#time_selector").val();
+        a === "hours" ? this.until *= 3600 : a === "mins" && (this.until *= 60);
+        a = this.parseTime();
+        // $("#config_sim").button("option", "label", a[0].toFixed(3) + " " + a[1])
+        $("#config_label").text(a[0].toFixed(3) + " " + a[1]);
+    },
+    startSim: function() {
+        console.log("startSim");
+        var a, b;
+        console.log("Inside start sim");
+        this.sim = new Sim;
+        this.random = new Random((new Date).getTime());
+        $("#progressbar").toggle();
+        $("#sim_play_ops").toggle();
+        $("#new_ops").toggle();
+        $("#file_ops").toggle();
+        $("#sim_ops").toggle();
+        $("#about_this_model").accordion("activate", !1);
+        a = this.models.length;
+        for (b = a - 1; b >= 0; b--) this.models[b].start();
+        for (b = a - 1; b >= 0; b--) this.models[b].connect();
+        this.playing = !0;
+        this.paused = !1;
+        this.startedAt = (new Date).getTime();
+        this.run()
+    },
+    IntervalLow: 40,
+    Interval: 50,
+    IntervalHigh: 60,
+    EventsPerInterval: 100,
+    IntervalPause: 0,
+    run: function() {
+        console.log("run");
+        var a = QueueApp,
+            b = (new Date).getTime(),
+            c = a.sim.simulate(a.until, a.EventsPerInterval),
+            b = (new Date).getTime() - b;
+        if (b < a.IntervalLow || b > a.IntervalHigh) a.EventsPerInterval = Math.floor(a.EventsPerInterval / b * a.Interval);
+        a.progress.progressbar({
+            value: a.sim.time() * 100 / a.until
+        });
+        c ? QueueApp.complete() :
+            a.playing ? a.paused ? QueueApp.pauseSim() : setTimeout(a.run, a.IntervalPause) : QueueApp.complete()
+    },
+    complete: function() {
+        $("#progressbar").toggle();
+        $("#sim_play_ops").toggle();
+        $("#new_ops").toggle();
+        $("#file_ops").toggle();
+        $("#sim_ops").toggle();
+        for (var a = QueueApp.models.length - 1; a >= 0; a--) {
+            var b = QueueApp.models[a];
+            b.showStats && b.showStats()
+        }
+    },
+    pauseSim: function() {
+        for (var a = QueueApp.models.length - 1; a >= 0; a--) {
+            var b = QueueApp.models[a];
+            b.showStats && b.showStats()
+        }
+    }
+};
+Raphael.fn.connection = function(a, b, c, d) {
+    if (a.line && a.from && a.to) c = a, a = c.from, b = c.to;
+    var e = a.getBBox(),
+        f = b.getBBox(),
+        g = e.x + e.width + 1,
+        e = e.y + e.height / 2,
+        i = f.x - 1,
+        f = f.y + f.height / 2,
+        h = [3, 6];
+    dx = Math.max(Math.abs(g - i) / 2, 10);
+    dy = Math.max(Math.abs(e - f) / 2, 10);
+    var j = [g, g, g - dx, g + dx][h[0]].toFixed(3),
+        k = [e - dy, e + dy, e, e][h[0]].toFixed(3),
+        l = [0, 0, 0, 0, i, i, i - dx, i + dx][h[1]].toFixed(3),
+        h = [0, 0, 0, 0, e + dy, e - dy, f, f][h[1]].toFixed(3),
+        g = ["M", g.toFixed(3), e.toFixed(3), "C", j, k, l, h, i.toFixed(3), f.toFixed(3)].join(",");
+    if (c && c.line) c.bg &&
+        c.bg.attr({
+            path: g
+        }), c.line.attr({
+            path: g
+        });
+    else return c = typeof c == "string" ? c : "#000", {
+        bg: d && d.split && this.path(g).attr({
+            stroke: d.split("|")[0],
+            fill: "none",
+            "stroke-width": d.split("|")[1] || 3
+        }),
+        line: this.path(g).attr({
+            stroke: c,
+            fill: "none"
+        }),
+        from: a,
+        to: b
+    }
+};
+var MODELS = {
+    model_mm1: {
+        model: '{"until":14400,"seed":1234,"version":"1.0","objects":[{"x":102,"y":136,"type":"source","name":"source_1","out":"queue_1","model":{"lambda":0.25}},{"x":252,"y":93,"type":"queue","name":"queue_1","model":{"nservers":1,"mu":"1","maxqlen":"-1"}}]}'    },
+    model_mm1feedback: {
+        model: '{"until":14400,"seed":1234,"version":"1.0","objects":[{"x":399,"y":171,"type":"sink","name":"sink_1","model":null},{"x":257,"y":186,"type":"splitter","name":"splitter_1","out":["queue_1","sink_1"],"model":{"prob":"0.1"}},{"x":102,"y":136,"type":"source","name":"source_1","out":"queue_1","model":{"lambda":0.25}},{"x":210,"y":83,"type":"queue","name":"queue_1","out":"splitter_1","model":{"nservers":1,"mu":"1","maxqlen":"-1"}}]}'
+    },
+    model_backforth: {
+        model: '{"until":28800,"seed":1234,"version":"1.0","objects":[{"x":496,"y":128,"type":"sink","name":"sink_1","model":null},{"x":241,"y":187,"type":"queue","name":"queue_2","out":"splitter_2","model":{"nservers":1,"mu":"1","maxqlen":"-1"}},{"x":379,"y":193,"type":"splitter","name":"splitter_2","out":["queue_1","sink_1"],"model":{"prob":0.5}},{"x":377,"y":93,"type":"splitter","name":"splitter_1","out":["sink_1","queue_2"],"model":{"prob":0.5}},{"x":228,"y":87,"type":"queue","name":"queue_1","out":"splitter_1","model":{"nservers":1,"mu":"1","maxqlen":"-1"}},{"x":91,"y":84,"type":"source","name":"source_1","out":"queue_1","model":{"lambda":0.25}}]}'
+    },
+    model_waterfall: {
+        model: '{"until":14400,"seed":1234,"version":"1.0","objects":[{"x":82,"y":29,"type":"source","name":"source_1","out":"queue_1","model":{"lambda":0.25}},{"x":558,"y":341,"type":"sink","name":"sink_1","model":null},{"x":440,"y":281,"type":"queue","name":"queue_4","out":"sink_1","model":{"nservers":1,"mu":"1","maxqlen":"-1"}},{"x":342,"y":211,"type":"queue","name":"queue_3","out":"queue_4","model":{"nservers":1,"mu":"1","maxqlen":"-1"}},{"x":241,"y":144,"type":"queue","name":"queue_2","out":"queue_3","model":{"nservers":1,"mu":"1","maxqlen":"-1"}},{"x":140,"y":76,"type":"queue","name":"queue_1","out":"queue_2","model":{"nservers":1,"mu":"1","maxqlen":"-1"}}]}'
+    },
+    model_compile: {
+        model: '{"until":28800,"seed":1234,"version":"1.0","objects":[{"x":526,"y":246,"type":"sink","name":"sink_1","model":null},{"x":272,"y":192,"type":"splitter","name":"splitter_3","out":["queue_1","queue_2"],"model":{"prob":0.5}},{"x":107,"y":36,"type":"source","name":"source_1","out":"queue_1","model":{"lambda":0.25}},{"x":456,"y":171,"type":"splitter","name":"splitter_2","out":["queue_1","sink_1"],"model":{"prob":0.5}},{"x":336,"y":187,"type":"queue","name":"queue_2","out":"splitter_2","model":{"nservers":1,"mu":"1","maxqlen":"-1"}},{"x":212,"y":63,"type":"queue","name":"queue_1","out":"splitter_3","model":{"nservers":1,"mu":"1","maxqlen":"-1"}}]}'
+    },
+    model_freeway: {
+        model: '{"until":28800,"seed":1234,"version":"1.0","objects":[{"x":380,"y":2,"type":"source","name":"source_4","out":"queue_4","model":{"lambda":0.25}},{"x":255,"y":80,"type":"source","name":"source_3","out":"queue_3","model":{"lambda":0.25}},{"x":115,"y":181,"type":"source","name":"source_2","out":"queue_2","model":{"lambda":0.25}},{"x":8,"y":229,"type":"source","name":"source_1","out":"queue_1","model":{"lambda":0.25}},{"x":561,"y":105,"type":"sink","name":"sink_4","model":null},{"x":510,"y":198,"type":"sink","name":"sink_3","model":null},{"x":374,"y":287,"type":"sink","name":"sink_2","model":null},{"x":204,"y":336,"type":"sink","name":"sink_1","model":null},{"x":139,"y":287,"type":"splitter","name":"splitter_3","out":["queue_2","sink_1"],"model":{"prob":0.5}},{"x":299,"y":213,"type":"splitter","name":"splitter_2","out":["queue_3","sink_2"],"model":{"prob":0.5}},{"x":430,"y":137,"type":"splitter","name":"splitter_1","out":["queue_4","sink_3"],"model":{"prob":0.5}},{"x":463,"y":43,"type":"queue","name":"queue_4","out":"sink_4","model":{"nservers":1,"mu":"1","maxqlen":"-1"}},{"x":327,"y":132,"type":"queue","name":"queue_3","out":"splitter_1","model":{"nservers":1,"mu":"1","maxqlen":"-1"}},{"x":194,"y":207,"type":"queue","name":"queue_2","out":"splitter_2","model":{"nservers":1,"mu":"1","maxqlen":"-1"}},{"x":31,"y":281,"type":"queue","name":"queue_1","out":"splitter_3","model":{"nservers":1,"mu":"1","maxqlen":"-1"}}]}'
+    },
+    model_staytillend: {
+        model: '{"until":28800,"seed":1234,"version":"1.0","objects":[{"x":554,"y":349,"type":"sink","name":"sink_5","model":null},{"x":515,"y":287,"type":"splitter","name":"splitter_4","out":["sink_4","sink_5"],"model":{"prob":0.5}},{"x":420,"y":216,"type":"splitter","name":"splitter_3","out":["sink_3","queue_4"],"model":{"prob":0.5}},{"x":319,"y":144,"type":"splitter","name":"splitter_2","out":["sink_2","queue_3"],"model":{"prob":0.5}},{"x":212,"y":83,"type":"splitter","name":"splitter_1","out":["sink_1","queue_2"],"model":{"prob":0.5}},{"x":561,"y":242,"type":"sink","name":"sink_4","model":null},{"x":457,"y":164,"type":"sink","name":"sink_3","model":null},{"x":362,"y":94,"type":"sink","name":"sink_2","model":null},{"x":65,"y":27,"type":"source","name":"source_1","out":"queue_1","model":{"lambda":0.25}},{"x":258,"y":28,"type":"sink","name":"sink_1","model":null},{"x":414,"y":281,"type":"queue","name":"queue_4","out":"splitter_4","model":{"nservers":1,"mu":"1","maxqlen":"-1"}},{"x":316,"y":211,"type":"queue","name":"queue_3","out":"splitter_3","model":{"nservers":1,"mu":"1","maxqlen":"-1"}},{"x":222,"y":139,"type":"queue","name":"queue_2","out":"splitter_2","model":{"nservers":1,"mu":"1","maxqlen":"-1"}},{"x":112,"y":76,"type":"queue","name":"queue_1","out":"splitter_1","model":{"nservers":1,"mu":"1","maxqlen":"-1"}}]}'
+    },
+    model_winner: {
+        model: '{"until":28800,"seed":1234,"version":"1.0","objects":[{"x":350,"y":293,"type":"source","name":"source_2","out":"queue_3","model":{"lambda":0.25}},{"x":57,"y":288,"type":"source","name":"source_1","out":"queue_2","model":{"lambda":0.25}},{"x":539,"y":250,"type":"sink","name":"sink_3","model":null},{"x":294,"y":239,"type":"sink","name":"sink_2","model":null},{"x":371,"y":24,"type":"sink","name":"sink_1","model":null},{"x":225,"y":203,"type":"splitter","name":"splitter_3","out":["queue_1","sink_2"],"model":{"prob":0.5}},{"x":480,"y":211,"type":"splitter","name":"splitter_2","out":["queue_1","sink_3"],"model":{"prob":0.5}},{"x":380,"y":205,"type":"queue","name":"queue_3","out":"splitter_2","model":{"nservers":1,"mu":"1","maxqlen":"-1"}},{"x":109,"y":198,"type":"queue","name":"queue_2","out":"splitter_3","model":{"nservers":1,"mu":"1","maxqlen":"-1"}},{"x":256,"y":85,"type":"queue","name":"queue_1","out":"sink_1","model":{"nservers":1,"mu":"1","maxqlen":"-1"}}]}'
+    }
+};

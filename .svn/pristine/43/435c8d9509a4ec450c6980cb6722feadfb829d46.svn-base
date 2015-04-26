@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+<title>VisuAlgo - Scoreboard</title>
+<link rel="icon" type="image/png" href="img/favicon.png" />
+
+<!--css-->
+<link rel="stylesheet" href="css/normalize.css">
+<link rel="stylesheet" href="css/common.css">
+<link rel="stylesheet" href="css/scoreboard.css">
+
+<!--js-->
+<script src="js/external/jquery-1.10.2.js"></script>
+<script src="js/test/test_mode_constant.js"></script>
+<script src="js/test/scoreboard.js"></script>
+<script src="js/common.js"></script>
+
+<!--fonts-->
+<link href="fonts/silkscreen/stylesheet.css" rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=PT+Sans:400,700' rel='stylesheet' type='text/css'>
+
+</head>
+
+<body>
+
+<div id="top-bar">
+	<a id="home" href="index.html">Visu<span class="colour">Algo</span></a>
+	<span id="title">
+		<a class="selected-viz" href="scoreboard.html">Test Scoreboard</a>
+	</span>
+</div>
+
+<div id="main">
+	<table>
+		<tr>
+			<th width="5%">No.</th>
+			<th width="20%">Matric Number</th> 
+			<th width="45%">Student Name</th>
+			<th width="15%">Score</th>
+			<th width="15%">Time Taken</th>
+		</tr>
+	</table>
+
+	<p>Current average score: <span id="avg"></span></p>
+</div>
+
+<!--div id="bottom-bar">
+	<a id="trigger-about">About</a>
+	<a id="trigger-team">Team</a>
+	<a id="trigger-terms">Terms of use</a>
+</div-->
+
+<!-- Bottom bar and overlay popups -->
+<!--div id="dark-overlay"></div>
+<div id="about" class="overlays"></div>
+<div id="team" class="overlays"></div>
+<div id="termsofuse" class="overlays"></div-->
+
+</body>
+</html>

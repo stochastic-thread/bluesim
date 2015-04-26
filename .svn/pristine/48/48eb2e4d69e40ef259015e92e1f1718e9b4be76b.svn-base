@@ -1,0 +1,6 @@
+QueueApp.canvas is just a raphael object
+newEntities are done in new*() in QueueApp
+	they call constructor newView()
+	this is another QueueApp function
+	they just pass the constructor of the entity
+

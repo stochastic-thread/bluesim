@@ -1,0 +1,3 @@
+1. fix.html is now called index.html
+2. created start_server.sh script for d3 functionality, run it like "./start_server.sh"
+3. go to "localhost:8899"

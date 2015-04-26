@@ -1,0 +1,181 @@
+/* Imageview processes entities created by the user into image form and pushes them into the model 
+Queue to be processed once the simulation runs.  Added an id tag to images so that they can be animated
+when the simulation runs using D3 */
+
+var ImageView = function(a, b, c, d, e, f, g) {
+    this.canvas = a;
+    this.type = b;
+    this.name = c;
+	switch(b){
+		case "source":
+			this.image = a.image("images/customers.png", d, e, 34, 34), this.height = this.width = 34;
+			break;
+		case "sink":
+			this.height = this.width = 32, this.image = a.image("images/door_out.png", d, e, this.width, this.height);
+			break;
+		case "queue":
+			this.width = 116 * 0.8, this.height = 44, this.image = a.image("images/server.png", d, e, this.width, this.height);
+			break;
+		case "stack":
+			this.width = 116 * 0.8, this.height = 44, this.image = a.image("images/stack.png", d, e, this.width, this.height);
+			break;
+		case "func":
+			this.width = 110 * .8, this.height = 44, this.image = a.image("images/func.png", d, e, this.width, this.height);
+			break;
+		case "splitfunc":
+			this.height = this.width = 32, this.image = a.image("images/split3.png", d, e, this.width, this.height);
+			break;
+			
+	}
+
+    this.x = d;
+    this.y = e;
+    this.hasIn = f;
+    this.hasOut = g;
+    this.text = a.text(d, e, this.name);
+    this.counters = a.text(d,
+        e, "");
+    this.counters.hide();
+    this.image.attr({
+        cursor: "move"
+    });
+    this.image.view = this;
+    this.image.animate({
+        scale: "1.2 1.2"
+    }, 200, function() {
+        this.animate({
+            scale: "1 1"
+        }, 200)
+    });
+    if (this.hasOut) this.arrow = a.image("images/orange-arrow.gif", d, e, 12, 12), this.arrow.view = this, this.arrow.drag(function(a, b) {
+        this.attr({
+            x: this.ox + a,
+            y: this.oy + b
+        });
+        this.paper.connection(this.conn)
+    }, function() {
+        this.conn = this.paper.connection(this.view.image, this, "#000");
+        this.ox = this.attr("x");
+        this.oy = this.attr("y")
+    }, function() {
+        this.conn.line.remove();
+        this.conn = null;
+        var a = QueueApp.views,
+            b = a.length,
+            c = this.attr("x"),
+            d = this.attr("y");
+        for (b -= 1; b >= 0; b--) {
+            var f = a[b];
+            if (f.acceptDrop(c, d)) {
+                this.hide();
+                this.view.connect(f);
+                return
+            }
+        }
+        a = this.view;
+        this.attr({
+            x: a.x + a.width + 2,
+            y: a.y + a.height / 2 - 6
+        })
+    });
+    this.moveto(d, e);
+    this.image.drag(function(a, b) {
+        var c = this.view;
+        c.moveto(c.ox + a, c.oy + b)
+    }, function() {
+        var a = this.view;
+        a.ox = a.x;
+        a.oy = a.y
+    }, function() {});
+    this.image.dblclick(function() {
+        this.view.model.showSettings()
+    })
+};
+ImageView.prototype.moveto = function(a, b) {
+    var c;
+    if (!(a > 800 - this.width || b > 400 - this.height || a < 0 || b < 0)) {
+        this.x = a;
+        this.y = b;
+        this.image.attr({
+            x: a,
+            y: b
+        });
+        this.text.attr({
+            x: this.x + this.width / 2,
+            y: this.y + this.height + 5
+        });
+        this.counters.attr({
+            x: this.x + this.width / 2,
+            y: this.y + this.height + 20
+        });
+        this.arrow && this.arrow.attr({
+            x: this.x + this.width + 2,
+            y: this.y + this.height / 2 - 6
+        });
+        if (this.hasIn) {
+            c = QueueApp.views.length;
+            for (c -= 1; c >= 0; c--) QueueApp.views[c].moveConnection(this)
+        }
+        this.arrow && this.arrow.conn && this.canvas.connection(this.arrow.conn)
+    }
+};
+ImageView.prototype.connect = function(a) {
+    var b = this.canvas.connection(this.image, a.dropObject(), "#000");
+    b.line.attr({
+        "stroke-width": 3,
+        stroke: "#F7D68A"
+    });
+	/* NOTE WHAT IS THIS? */
+    //b.line.node.id = getID(); //here source
+    b.fromView = this;
+    b.toView = a;
+    this.arrow.conn = b;
+    this.arrow.hide();
+    this.model.dest = a.model
+};
+ImageView.prototype.unlink = function() {
+    var a, b;
+    a = QueueApp.models.length;
+    for (a -= 1; a >= 0; a--)
+        if (QueueApp.models[a] === this.model) {
+            b = a;
+            break
+        }
+    b && QueueApp.models.splice(b, 1);
+    this.model && this.model.unlink();
+    this.disconnect();
+    a = QueueApp.views.length;
+    for (a -= 1; a >= 0; a--) QueueApp.views[a].disconnect(this), QueueApp.views[a] === this && (b = a);
+    QueueApp.views.splice(b, 1);
+    this.image.remove();
+    this.arrow && this.arrow.remove();
+    this.counters.remove();
+    this.text.remove()
+};
+ImageView.prototype.disconnect = function(a) {
+    if (this.arrow && this.arrow.conn && (!a || this.arrow.conn.toView === a)) this.arrow.conn.line.remove(), this.arrow.conn = null, this.arrow.attr({
+        x: this.x + this.width + 2,
+        y: this.y + this.height / 2 - 6
+    }), this.arrow.show(), this.model.dest = null
+};
+ImageView.prototype.dropObject = function() {
+    return this.image
+};
+ImageView.prototype.acceptDrop = function(a, b) {
+    return !this.hasIn ? !1 : a > this.x - 10 && a < this.x + this.width + 10 && b > this.y - 10 && b < this.y + this.height + 10
+};
+ImageView.prototype.moveConnection = function(a) {
+    this.arrow && this.arrow.conn && this.arrow.conn.toView === a && this.canvas.connection(this.arrow.conn)
+};
+ImageView.prototype.jsonify = function() {
+    var a = {
+        x: this.x,
+        y: this.y,
+        type: this.type,
+        name: this.name
+    };
+    if (this.arrow && this.arrow.conn) a.out = this.arrow.conn.toView.name;
+    if (this.model) a.model = this.model.jsonify();
+    return a
+};
+ImageView.prototype.showCounters = function() {};

@@ -1,0 +1,21 @@
+We want to add more complexity specifically to Messaging in general.  This function is used by all the entities to simulate movement within the simulation.  The easiest way to do so is adding an extra argument for params of the sent/received object.
+
+Entity Walkthrough:
+	sink.js doesn't use any entities or resources.
+		Its only call is to Sim.Population which is simply a statistics resource.
+		Uses:
+			Sim.Population.enter(Enter Time);
+			Sim.Population.leave(Enter Time, Leave Time);
+		If we assume every received data value is unique, then we probably won't have to change anything about sinks.
+		To add more analysis tools, we could make it so that a sink can store any number of particular values from the sent data.  This seems fairly simple as we can utilize Sim.Store to our advantage if we want to.
+	server.js uses a Sim.Facility First Come First Served object
+		Uses:
+			Sim.Facility.useFacility(Facility, Duration)
+		Perhaps calling it a server is too ambiguous as its primary function is more or less a queue with a static wait time.
+		I don't foresee any real reason to change this too much and I don't want the queues to be doing the sink's job of storing the received data values.
+	source.js doesn't use anything from sim.js
+		Instead, it has a timer and calls its traffic() function which randomly generates a "pulse" thingie based on its distribution.
+	splitter.js doesn't use anything from sim.js
+		There seems to be attribute association in place for splitters.  It just isn't implemented.
+		In the future, a "used params" attribute could work in allowing the splitter to use individual data properties.
+		Also, for some reason, splitter.js has a SplitterView which looks to have the same functionality as ImageView.  I have no idea why this is the case.

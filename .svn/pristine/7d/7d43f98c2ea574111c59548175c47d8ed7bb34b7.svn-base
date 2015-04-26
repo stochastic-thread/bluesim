@@ -1,0 +1,175 @@
+
+function ThermoModel(a) {
+    this.view = a;
+    this.entity = null;
+    this.udoStats = []; //udoStats.name, total, min, max
+    this.statTable = $("#therm_stats").clone().attr("id", a.name);
+    this.statTable.find("h2").text(a.name);
+    $("#results").append(this.statTable);
+    this.statRef = [
+				this.statTable.find("#depart"), 
+				this.statTable.find("#pop"), 
+				this.statTable.find("#popd"), 
+				this.statTable.find("#stay"), 
+				this.statTable.find("#stayd")
+				]
+	a.image.attr({
+		title: "Thermometer"
+	})
+	this.stat = {}
+}
+
+ThermoModel.prototype.jsonify = function() {
+    return null;
+};
+
+ThermoModel.prototype.start = function() {
+    this.entity = QueueApp.sim.addEntity(ThermoEntity ,this.udoStats);
+    //initialize UDO field statistics
+    for(i = 0; i < LIST_OF_PARAMETERS.length; i++){
+		this.udoStats.push({
+			name:LIST_OF_PARAMETERS[i][0],
+			total:0,
+			max:null,
+			min:null
+		})
+		/*
+    	this.udoStats[i].name = LIST_OF_PARAMETERS[i][0];
+    	this.udoStats[i].total = 0;
+    	this.udoStats[i].max = null;
+    	this.udoStats[i].min = null;
+		*/
+    }
+};
+
+ThermoModel.prototype.connect = function() {
+	this.entity.dest = this.dest ? this.dest.entity : null;
+};
+
+ThermoModel.prototype.showSettings = function() {
+    var a = $("#thermo_form");                        //TODO: make a thermo_form
+    QueueApp.form_view = this.view;
+    a.show().position({
+        of: $(this.view.image.node),
+        at: "center center",
+        my: "left top"
+    })
+    displayName(this, "thermo_name");
+};
+
+ThermoModel.prototype.saveSettings = function() {
+    rename(this, "thermo_name");
+};
+
+ThermoModel.prototype.initStats = function(){
+	var a = this.entity.population;
+    this.stat["pop"]=["Population Total", a.durationSeries.count()]
+	this.stat["pop average"]=["Average Population",a.sizeSeries.average()]
+	this.stat["pop deviation"]=["Population Deviation", a.sizeSeries.deviation()]
+	this.stat["time average"]=["Average Stay Duration", a.durationSeries.average()]
+	this.stat["time deviation"]=["Stay Duration Deviation",a.durationSeries.deviation()]
+	
+	for(var property in this.entity.dataCollector){
+		if(this.entity.dataCollector.hasOwnProperty(property)){
+			dC = this.entity.dataCollector[property]
+			this.stat[property + " count"]=["["+property+"] Total", dC.count()]
+			this.stat[property + " min"]=["["+property+"] Minimum Value", dC.min()]
+			this.stat[property + " max"]=["["+property+"] Maximum Value", dC.max()]
+			this.stat[property + " sum"]=["["+property+"] Sum of Values",dC.sum()]
+			this.stat[property + " average"]=["["+property+"] Average Value",dC.average()]
+			this.stat[property + " deviation"]=["["+property+"] Deviation",dC.deviation()]
+		}
+	}
+}
+
+ThermoModel.prototype.showStats = function() {
+    this.initStats();
+	
+    this.statRef[0].text(this.stat["pop"][1]);
+    this.statRef[1].text(this.stat["pop average"][1].toFixed(3));
+    this.statRef[2].text(this.stat["pop deviation"][1].toFixed(3));
+    this.statRef[3].text(this.stat["time average"][1].toFixed(3));
+    this.statRef[4].text(this.stat["time deviation"][1].toFixed(3));
+	
+    this.view.showCounters(this.stat.pop[1], NaN)
+    
+    if (USE_UDO){
+        //dynamically create information from 
+        //have to do for each UDO? change conditions LIST_OF_PARAMETERS.length or udostats.length
+        //need to check if we have created a table for this yet and update if so
+        
+       if (this.statTable.find("#udo_stat_table").val() == undefined){
+
+    //call animation manager function
+        
+        
+
+	        for (var i = 0;i < 3;i++){
+
+	            var newDiv = document.createElement('div');
+	            newDiv.id = "udo_stat_table";
+	
+			    newDiv.innerHTML = ('<table id="test" class="stats_table" border="1">' + 
+			    '<tbody>' + 
+			    '<tr><td>Name</td><td id="name">0</td><td>-</td></tr>' + 
+			    '<tr><td>Population</td><td id="total">0.000</td><td id="popd">NaN</td></tr>' + 
+			    '<tr><td>stay duration</td><td id="min">0.000</td><td id="stayd">NaN</td></tr>' + 
+			    '<tr><td>stay duration</td><td id="max">0.000</td><td id="stayd">NaN</td></tr>' + 
+			'</tbody></table>'); 
+
+				this.statTable.append(newDiv);
+			}
+
+
+		}
+    } else {
+        //destroy all the things that we may added
+        this.statTable.find("#udo_stat_table");
+    }
+
+    //call animation manager function
+    var value = this.stat["time average"][1].toFixed(3);
+    stat_animation_manager(this.view.image.node.id, "sink", value);
+};
+
+ThermoModel.prototype.unlink = function() {
+    this.statTable.remove();
+    this.statRef = this.view = this.stat = null
+};
+
+var ThermoEntity = {
+    start: function() {
+        this.population = new Sim.Population
+		//{property name:time series
+		this.dataCollector={}
+		for(i = LIST_OF_PARAMETERS.length -1;i >= 0; i--){
+			this.dataCollector[LIST_OF_PARAMETERS[i][0]]=new Sim.TimeSeries()
+		}
+		//debug
+		this.statTrack = []
+    },
+    onMessage: function(sender, message) {
+		//message must be a time value
+        message || (message.timer = 0);
+        this.population.enter(message.timer);
+        this.population.leave(message.timer, this.time());
+        
+        //update udofield stats
+        for(var property in message.fields){
+			if(message.fields.hasOwnProperty(property)){
+				this.dataCollector[property].record(message.fields[property],this.time());
+			}
+		}
+		//debug
+		for(var property in message.fields){
+			var instProp = []
+			if(message.fields.hasOwnProperty(property)){
+				instProp.push(message.fields[property])
+            }
+			this.statTrack.push(instProp)
+		}
+		this.dest && this.send(message, 0, this.dest);
+    }
+};
+
+
